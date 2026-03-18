@@ -1,0 +1,223 @@
+/**
+ * Styles for the Score feature screens.
+ *
+ * Extends globalStyles with Score-specific layout and component styles.
+ * All values use theme constants (COLORS, SPACING, FONT_SIZE, etc.) —
+ * no magic numbers.
+ */
+
+import { StyleSheet } from 'react-native';
+import { COLORS } from '../../styles/colors';
+import { SPACING, FONT_SIZE, FONT_WEIGHT, BORDER_RADIUS, LAYOUT } from '../../styles/theme';
+import { SHADOWS } from '../../styles/globalStyles';
+
+// ─── Shared ──────────────────────────────────────────────────────────────────
+
+export const scoreStyles = StyleSheet.create({
+  // ── Screen containers ──────────────────────────────────────────────────────
+  screen: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: SPACING.sm,
+  },
+
+  // ── Form ───────────────────────────────────────────────────────────────────
+  formContainer: {
+    flex: 1,
+    padding: SPACING.sm,
+  },
+  formTitle: {
+    fontSize: FONT_SIZE.heading,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.xs,
+  },
+  formSubtitle: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.normal,
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.md,
+  },
+
+  // ── Player row ─────────────────────────────────────────────────────────────
+  playerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: SPACING.xs,
+  },
+  playerIndexLabel: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textSecondary,
+    width: 24,
+    marginTop: 14, // align with text input center
+    textAlign: 'center',
+  },
+  playerInputWrapper: {
+    flex: 1,
+    marginHorizontal: SPACING.xs,
+  },
+  playerInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: BORDER_RADIUS.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs,
+    fontSize: FONT_SIZE.body,
+    color: COLORS.textPrimary,
+    backgroundColor: COLORS.background,
+    minHeight: LAYOUT.minTouchTarget,
+  },
+  playerInputError: {
+    borderColor: COLORS.error,
+  },
+  playerInputErrorText: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.error,
+    marginTop: 4,
+    marginLeft: 4,
+  },
+
+  // ── Remove player button ───────────────────────────────────────────────────
+  removeButton: {
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    borderRadius: BORDER_RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginTop: 4,
+  },
+  removeButtonDisabled: {
+    opacity: 0.4,
+  },
+  removeButtonLabel: {
+    fontSize: FONT_SIZE.subheading,
+    color: COLORS.error,
+    fontWeight: FONT_WEIGHT.bold,
+    lineHeight: FONT_SIZE.subheading,
+  },
+
+  // ── Add player button ──────────────────────────────────────────────────────
+  addPlayerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    borderStyle: 'dashed',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
+  },
+  addPlayerButtonDisabled: {
+    borderColor: COLORS.border,
+  },
+  addPlayerButtonLabel: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.primary,
+  },
+  addPlayerButtonLabelDisabled: {
+    color: COLORS.textDisabled,
+  },
+
+  // ── Player count hint ──────────────────────────────────────────────────────
+  playerCountHint: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+
+  // ── Create Game button ─────────────────────────────────────────────────────
+  createButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.sm,
+    ...SHADOWS.sm,
+  },
+  createButtonDisabled: {
+    backgroundColor: COLORS.textDisabled,
+  },
+  createButtonLabel: {
+    color: COLORS.background,
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+
+  // ── Game board ─────────────────────────────────────────────────────────────
+  boardContainer: {
+    flex: 1,
+    padding: SPACING.sm,
+  },
+  boardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  boardTitle: {
+    fontSize: FONT_SIZE.heading,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+  },
+  newGameButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.xs / 2,
+    paddingHorizontal: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newGameButtonLabel: {
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.primary,
+  },
+  playerCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.sm,
+    marginBottom: SPACING.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    ...SHADOWS.sm,
+  },
+  playerCardName: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+    flex: 1,
+  },
+  playerCardScore: {
+    fontSize: FONT_SIZE.subheading,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.primary,
+    minWidth: 48,
+    textAlign: 'right',
+  },
+  sessionInfo: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: SPACING.sm,
+  },
+});
