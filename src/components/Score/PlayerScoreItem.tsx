@@ -64,6 +64,7 @@ const PlayerScoreItem: React.FC<PlayerScoreItemProps> = ({
           style={styles.scoreButton}
           onPress={handleDecrement}
           accessibilityLabel={`Decrease ${player.name}'s score`}
+          accessibilityHint={`Subtracts 1 point from ${player.name}'s current score of ${formatScore(score)}`}
           accessibilityRole="button"
           hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         >
@@ -80,6 +81,7 @@ const PlayerScoreItem: React.FC<PlayerScoreItemProps> = ({
           style={styles.scoreButton}
           onPress={handleIncrement}
           accessibilityLabel={`Increase ${player.name}'s score`}
+          accessibilityHint={`Adds 1 point to ${player.name}'s current score of ${formatScore(score)}`}
           accessibilityRole="button"
           hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
         >

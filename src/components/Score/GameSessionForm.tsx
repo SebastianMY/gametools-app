@@ -183,7 +183,9 @@ const GameSessionForm: React.FC<GameSessionFormProps> = ({ onCreateSession }) =>
                   onPress={() => handleRemovePlayer(index)}
                   disabled={!canRemovePlayer}
                   accessibilityLabel={`Remove player ${index + 1}`}
+                  accessibilityHint="Removes this player from the game session"
                   accessibilityRole="button"
+                  accessibilityState={{ disabled: !canRemovePlayer }}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Text style={styles.removeButtonLabel}>−</Text>
@@ -203,7 +205,9 @@ const GameSessionForm: React.FC<GameSessionFormProps> = ({ onCreateSession }) =>
             onPress={handleAddPlayer}
             disabled={!canAddPlayer}
             accessibilityLabel="Add another player"
+            accessibilityHint={`Adds a new player input field (maximum ${MAX_PLAYERS} players)`}
             accessibilityRole="button"
+            accessibilityState={{ disabled: !canAddPlayer }}
           >
             <Text
               style={[
@@ -220,7 +224,8 @@ const GameSessionForm: React.FC<GameSessionFormProps> = ({ onCreateSession }) =>
             style={[styles.createButton, !isFormValid && styles.createButtonDisabled]}
             onPress={handleCreateGame}
             disabled={!isFormValid}
-            accessibilityLabel="Create Game"
+            accessibilityLabel="Create Game button"
+            accessibilityHint="Creates a new game session with the entered player names and opens the score board"
             accessibilityRole="button"
             accessibilityState={{ disabled: !isFormValid }}
           >

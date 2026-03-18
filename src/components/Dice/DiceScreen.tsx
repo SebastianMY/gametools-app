@@ -100,8 +100,12 @@ const DiceScreen: React.FC = () => {
         <Text style={styles.rollButtonLabel}>{isRolling ? 'Rolling…' : 'Roll'}</Text>
       </TouchableOpacity>
 
-      {/* Roll results */}
-      <View style={styles.resultsContainer}>
+      {/* Roll results — accessibilityLiveRegion announces state changes to
+          screen readers without requiring the user to navigate to this area. */}
+      <View
+        style={styles.resultsContainer}
+        accessibilityLiveRegion="polite"
+      >
         <Text style={styles.resultsLabel}>Result</Text>
 
         {!isRolling && diceValues.length === 0 ? (

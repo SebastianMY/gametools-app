@@ -74,6 +74,7 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
               style={styles.newGameButton}
               onPress={onBack}
               accessibilityLabel="Return to saved games list"
+              accessibilityHint="Saves the current scores and returns to the list of all game sessions"
               accessibilityRole="button"
             >
               <Text style={styles.newGameButtonLabel}>All Games</Text>
