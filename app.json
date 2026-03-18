@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Game Companion",
+    "slug": "game-companion",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.gamecompanion.app",
+      "requireFullScreen": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.gamecompanion.app",
+      "minSdkVersion": 26
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png"
+    },
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}
