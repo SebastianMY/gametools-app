@@ -56,7 +56,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 1,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/1"
     },
     {
       "id": "TASK-002",
@@ -95,7 +97,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 2,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/2"
     },
     {
       "id": "TASK-003",
@@ -131,7 +135,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 3,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/3"
     },
     {
       "id": "TASK-004",
@@ -165,7 +171,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 4,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/4"
     },
     {
       "id": "TASK-005",
@@ -198,7 +206,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 5,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/5"
     },
     {
       "id": "TASK-006",
@@ -238,7 +248,9 @@
           "path": "src/App.tsx",
           "current_purpose": "Root component (minimal setup from TASK-001)"
         }
-      ]
+      ],
+      "issue_number": 6,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/6"
     },
     {
       "id": "TASK-007",
@@ -278,7 +290,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 7,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/7"
     },
     {
       "id": "TASK-008",
@@ -324,7 +338,9 @@
           "path": "src/components/Dice/DiceScreen.tsx",
           "current_purpose": "Main Dice component (created in TASK-007)"
         }
-      ]
+      ],
+      "issue_number": 8,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/8"
     },
     {
       "id": "TASK-009",
@@ -364,7 +380,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 9,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/9"
     },
     {
       "id": "TASK-010",
@@ -412,7 +430,9 @@
           "path": "src/components/Score/ScoreScreen.tsx",
           "current_purpose": "Main Score component (created in TASK-009)"
         }
-      ]
+      ],
+      "issue_number": 10,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/10"
     },
     {
       "id": "TASK-011",
@@ -459,7 +479,9 @@
           "path": "src/components/Score/ScoreScreen.tsx",
           "current_purpose": "Main Score component (created in TASK-009)"
         }
-      ]
+      ],
+      "issue_number": 11,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/11"
     },
     {
       "id": "TASK-012",
@@ -505,7 +527,9 @@
           "path": "src/components/Score/ScoreScreen.tsx",
           "current_purpose": "Main Score component (created in TASK-009)"
         }
-      ]
+      ],
+      "issue_number": 12,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/12"
     },
     {
       "id": "TASK-013",
@@ -547,7 +571,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 13,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/13"
     },
     {
       "id": "TASK-014",
@@ -596,7 +622,9 @@
           "path": "src/components/Draw/DrawScreen.tsx",
           "current_purpose": "Main Draw component (created in TASK-013)"
         }
-      ]
+      ],
+      "issue_number": 14,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/14"
     },
     {
       "id": "TASK-015",
@@ -679,7 +707,9 @@
           "path": "src/components/Draw/TouchCanvas.tsx",
           "current_purpose": "Touch circle rendering (created in TASK-013)"
         }
-      ]
+      ],
+      "issue_number": 15,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/15"
     },
     {
       "id": "TASK-016",
@@ -729,7 +759,9 @@
           "path": "src/services/StorageService.ts",
           "current_purpose": "Storage service (created in TASK-003)"
         }
-      ]
+      ],
+      "issue_number": 16,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/16"
     },
     {
       "id": "TASK-017",
@@ -774,7 +806,9 @@
       "context_files": [
         "docs/architecture/architecture_approved_NNNN.md"
       ],
-      "existing_files_to_modify": []
+      "existing_files_to_modify": [],
+      "issue_number": 17,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/17"
     },
     {
       "id": "TASK-018",
@@ -827,7 +861,9 @@
           "path": "README.md",
           "current_purpose": "Project overview (created in TASK-001)"
         }
-      ]
+      ],
+      "issue_number": 18,
+      "issue_url": "https://github.com/SebastianMY/gametools-app/issues/18"
     }
   ]
 }
