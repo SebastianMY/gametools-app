@@ -9,14 +9,15 @@
  *  3. **Board view** (`ScoreBoard`): displays the active session's players and
  *     their scores, with +/− controls for live score tracking.
  *
- * Persistence (AsyncStorage via StorageService) is handled here — new sessions
- * are saved when created, and existing sessions are loaded on demand.
+ * All persistence (AsyncStorage via StorageService) is delegated to the
+ * `useGameSession` hook — new sessions are saved when created, scores are
+ * auto-saved on every change, and existing sessions are loaded on demand.
  */
 
 import React, { useState, useCallback } from 'react';
 
 import { GameSession } from '../../types';
-import StorageService from '../../services/StorageService';
+import { useGameSession } from './useGameSession';
 import GameSessionForm from './GameSessionForm';
 import GameSessionList from './GameSessionList';
 import ScoreBoard from './ScoreBoard';
@@ -30,11 +31,20 @@ type ScoreView = 'list' | 'form' | 'board';
 
 /**
  * ScoreScreen orchestrates navigation between the session list, creation form,
- * and active game board views.
+ * and active game board views. Session state and persistence are managed by
+ * the `useGameSession` hook.
  */
 const ScoreScreen: React.FC = () => {
   const [view, setView] = useState<ScoreView>('list');
-  const [activeSession, setActiveSession] = useState<GameSession | null>(null);
+
+  const {
+    activeSession,
+    createGameSession,
+    loadGameSession,
+    updatePlayerScore,
+    refreshSessions,
+    clearActiveSession,
+  } = useGameSession();
 
   // ── Handlers ───────────────────────────────────────────────────────────────
 
@@ -44,45 +54,53 @@ const ScoreScreen: React.FC = () => {
   }, []);
 
   /**
-   * Called by GameSessionForm when the user successfully creates a session.
-   * Persists the session to StorageService, then shows the board.
+   * Called by GameSessionForm when the user successfully submits the form.
+   * Extracts player names from the pre-built session object and delegates
+   * session creation (including ID generation and persistence) to the hook.
    */
-  const handleCreateSession = useCallback(async (session: GameSession) => {
-    await StorageService.saveGameSession(session);
-    setActiveSession(session);
-    setView('board');
-  }, []);
+  const handleCreateSession = useCallback(
+    async (session: GameSession) => {
+      const playerNames = session.players.map(p => p.name);
+      await createGameSession(playerNames);
+      setView('board');
+    },
+    [createGameSession],
+  );
 
   /**
    * Called by GameSessionList when the user taps an existing session row.
-   * Receives the fully loaded GameSession from StorageService.
+   * Receives the fully loaded GameSession from StorageService via the list.
    */
-  const handleLoadSession = useCallback((session: GameSession) => {
-    setActiveSession(session);
-    setView('board');
-  }, []);
+  const handleLoadSession = useCallback(
+    async (session: GameSession) => {
+      // Re-load from storage to ensure we have the latest state (in case
+      // another render cycle modified scores since the list was populated).
+      await loadGameSession(session.sessionId);
+      setView('board');
+    },
+    [loadGameSession],
+  );
 
   /** Returns to the session list from the board view. */
-  const handleBackToList = useCallback(() => {
-    setActiveSession(null);
+  const handleBackToList = useCallback(async () => {
+    clearActiveSession();
+    // Refresh the list to reflect any score updates made during the session.
+    await refreshSessions();
     setView('list');
-  }, []);
+  }, [clearActiveSession, refreshSessions]);
 
   /**
    * Called by ScoreBoard when the user taps +/− for a player.
-   * Updates the activeSession scores immediately (within 50 ms, per NFR-P-003).
-   * Persistence is handled separately in TASK-012.
+   * Delegates to the hook which updates state and auto-saves within 200 ms
+   * (NFR-P-004).
    */
-  const handleScoreChange = useCallback((playerId: string, newScore: number) => {
-    setActiveSession(prev => {
-      if (prev === null) return prev;
-      return {
-        ...prev,
-        scores: { ...prev.scores, [playerId]: newScore },
-        lastModifiedAt: new Date().toISOString(),
-      };
-    });
-  }, []);
+  const handleScoreChange = useCallback(
+    (playerId: string, newScore: number) => {
+      if (activeSession === null) return;
+      updatePlayerScore(activeSession.sessionId, playerId, newScore);
+    },
+    [activeSession, updatePlayerScore],
+  );
 
   // ── Render: list view ──────────────────────────────────────────────────────
 
