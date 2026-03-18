@@ -131,6 +131,7 @@ const GameSessionList: React.FC<GameSessionListProps> = ({
               style={styles.listNewGameButton}
               onPress={onNewGame}
               accessibilityLabel="Start a new game"
+              accessibilityHint="Opens the player setup form to create a new game session"
               accessibilityRole="button"
             >
               <Text style={styles.listNewGameButtonLabel}>New Game</Text>
@@ -184,6 +185,7 @@ const GameSessionList: React.FC<GameSessionListProps> = ({
                   style={styles.sessionCardDeleteButton}
                   onPress={() => handleDeleteSession(session.sessionId)}
                   accessibilityLabel={`Delete game with ${formatPlayerNames(session)}`}
+                  accessibilityHint="Permanently removes this saved game session"
                   accessibilityRole="button"
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
