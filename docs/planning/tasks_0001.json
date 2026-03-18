@@ -1,0 +1,687 @@
+{
+  "project": "Game Companion Mobile Application",
+  "total_tasks": 22,
+  "total_waves": 9,
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Initialize React Native/Expo project with TypeScript and build config",
+      "description": "Set up a new Expo managed project with TypeScript support, ESLint, Prettier, and all required configuration files. Run `npx create-expo-app game-companion`, add TypeScript support, configure app.json with metadata (name, version, platforms), eas.json for EAS Build (iOS/Android), tsconfig.json for strict mode, babel.config.js, .prettierrc for code formatting, and .eslintrc.js for linting. This is the foundation for all subsequent development. Reference ADR-001 (React Native + Expo decision).",
+      "priority": "critical",
+      "wave": 1,
+      "estimated_files": [
+        "app.json",
+        "eas.json",
+        "tsconfig.json",
+        "babel.config.js",
+        "package.json",
+        ".prettierrc",
+        ".eslintrc.js",
+        ".gitignore",
+        "README.md"
+      ],
+      "depends_on": [],
+      "can_parallelize_with": [],
+      "acceptance_criteria": [
+        "Running `npx create-expo-app game-companion` successfully initializes project structure",
+        "TypeScript is configured: tsconfig.json exists with strict mode enabled, `tsc --noEmit` runs without errors",
+        "ESLint and Prettier installed and configured: `npx eslint src/` runs without crashing, `npx prettier --check src/` validates formatting",
+        "app.json contains correct metadata: name='Game Companion', version='1.0.0', platforms=['ios', 'android']",
+        "eas.json configured for EAS Build with iOS 13+ and Android 8.0+ (API 26) as targets",
+        "Running `npm start` or `expo start` launches Expo dev server without errors; app can load in Expo Go on physical device or emulator"
+      ],
+      "context_files": [
+        "docs/architecture_approved.md"
+      ],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-002",
+      "title": "Create shared TypeScript types and interfaces",
+      "description": "Define all core TypeScript interfaces used throughout the application in a single, centralized file. Create GameSession interface with fields: sessionId (string UUID), players (Player[]), scores (map of playerId to score number), createdAt (ISO 8601 string), lastModifiedAt (ISO 8601 string). Create Player interface with playerId (string UUID) and name (string, 1-20 chars). These types are shared across Score feature (persistence) and test utilities. All types are exported from src/types/index.ts for import by other modules.",
+      "priority": "critical",
+      "wave": 2,
+      "estimated_files": [
+        "src/types/index.ts"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-003",
+        "TASK-004"
+      ],
+      "acceptance_criteria": [
+        "GameSession interface defined with sessionId, players: Player[], scores: Record<string, number>, createdAt: string, lastModifiedAt: string",
+        "Player interface defined with playerId: string, name: string",
+        "All types are exported as named exports from src/types/index.ts",
+        "TypeScript compiler recognizes types: importing { GameSession, Player } from 'src/types' succeeds in other modules",
+        "No circular imports or type errors detected by `tsc --noEmit`"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-003",
+      "title": "Create design system and theme constants",
+      "description": "Establish centralized design tokens for colors, typography, spacing, and common component styles. Create src/styles/colors.ts exporting the 8-color palette for multi-touch circles (red #FF6B6B, blue #4ECDC4, yellow #FFE66D, green #95E77D, purple #C7B3E5, orange #FFAB91, pink #FF85B3, teal #7DD3C0) plus UI colors (background, text, primary action). Create src/styles/theme.ts exporting spacing scale (8, 16, 24, 32, etc.), typography sizes (small: 14sp, body: 16sp, heading: 20sp), and layout constants. Create src/styles/globalStyles.ts with reusable StyleSheet definitions for buttons, cards, and text blocks. All colors must meet WCAG AA 4.5:1 contrast ratio for accessibility (NFR-A-002). Reference Section 10.2 of the requirements for color recommendations.",
+      "priority": "critical",
+      "wave": 2,
+      "estimated_files": [
+        "src/styles/colors.ts",
+        "src/styles/theme.ts",
+        "src/styles/globalStyles.ts"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-002",
+        "TASK-004"
+      ],
+      "acceptance_criteria": [
+        "src/styles/colors.ts exports object with keys: RED, BLUE, YELLOW, GREEN, PURPLE, ORANGE, PINK, TEAL (multi-touch palette) plus BG_PRIMARY, TEXT_PRIMARY, TEXT_SECONDARY, ACCENT",
+        "All color values are valid React Native color strings (#RRGGBB or rgb format)",
+        "src/styles/theme.ts exports SPACING object (8, 16, 24, 32, etc.), TYPOGRAPHY object (sizes in sp), and BORDER_RADIUS constant",
+        "src/styles/globalStyles.ts exports StyleSheet with BUTTON_PRIMARY, BUTTON_SECONDARY, CARD, TEXT_BODY, TEXT_HEADING",
+        "Color contrast validation: measuring contrast between TEXT_PRIMARY and BG_PRIMARY yields ≥4.5:1 ratio",
+        "All styles use React Native StyleSheet.create() for optimization"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-004",
+      "title": "Create utility functions for validation and formatting",
+      "description": "Implement utility functions for input validation and data formatting. Create src/utils/validation.ts with validatePlayerName(name: string): boolean function that enforces 1-20 character limit and allows only alphanumeric characters, spaces, and hyphens (per ADR-015). Create src/utils/formatters.ts with formatTimestamp(iso: string): string function that converts ISO 8601 timestamps (e.g., '2026-03-18T14:00:00Z') to human-readable format (e.g., 'Mar 18, 2:30 PM'). These utilities are used by Score feature for form validation and session list display.",
+      "priority": "high",
+      "wave": 2,
+      "estimated_files": [
+        "src/utils/validation.ts",
+        "src/utils/formatters.ts"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-002",
+        "TASK-003"
+      ],
+      "acceptance_criteria": [
+        "validatePlayerName accepts names with 1-20 alphanumeric characters, spaces, and hyphens; returns true",
+        "validatePlayerName rejects empty strings, strings >20 chars, and strings with special chars (#, @, !, etc.); returns false",
+        "formatTimestamp('2026-03-18T14:00:00Z') returns string matching pattern 'MMM DD, H:MM AM/PM' (e.g., 'Mar 18, 2:00 PM')",
+        "formatTimestamp handles timezone-aware ISO strings correctly",
+        "All functions are pure and have no side effects"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-005",
+      "title": "Implement StorageService for AsyncStorage persistence",
+      "description": "Create a service layer that abstracts AsyncStorage operations for game session persistence. Implement StorageService as a singleton class (or object with methods) exporting: saveGameSession(session: GameSession): Promise<void> persists to key `game_session_{sessionId}` using JSON.stringify; loadGameSession(sessionId: string): Promise<GameSession | null> retrieves and parses JSON; deleteGameSession(sessionId: string): Promise<void> removes session; listAllGameSessions(): Promise<GameSession[]> enumerates all keys matching `game_session_*`, loads and deserializes all; sessionExists(sessionId: string): Promise<boolean>; cleanupOldSessions(retentionDays: number = 60): Promise<void> deletes sessions where Date.now() - new Date(session.createdAt).getTime() > retentionDays * 86400000 (per ADR-018). All methods handle AsyncStorage errors gracefully.",
+      "priority": "critical",
+      "wave": 3,
+      "estimated_files": [
+        "src/services/StorageService.ts"
+      ],
+      "depends_on": [
+        "TASK-002",
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-006",
+        "TASK-007",
+        "TASK-008"
+      ],
+      "acceptance_criteria": [
+        "saveGameSession(session) serializes to JSON and stores under key 'game_session_{sessionId}' in AsyncStorage",
+        "loadGameSession(sessionId) retrieves and deserializes; returns GameSession object or null if not found",
+        "deleteGameSession(sessionId) removes key from AsyncStorage without error",
+        "listAllGameSessions() returns array of all GameSession objects; empty array if no sessions exist",
+        "cleanupOldSessions(60) deletes sessions with createdAt older than 60 days; newer sessions remain",
+        "All methods return Promises; errors are caught and logged (console.error) but don't crash app"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-006",
+      "title": "Implement VibrationService for haptic feedback",
+      "description": "Create a service wrapper around Expo Haptics module for cross-platform vibration feedback. Implement VibrationService as singleton exporting: triggerNotification(): Promise<void> calls Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success) for a single haptic pulse on 3-second touch stability completion; triggerSuccess(): Promise<void> for multi-pulse success pattern; triggerError(): Promise<void> for error pattern. Per ADR-020, Expo Haptics automatically handles graceful fallback on devices without vibration support (no-op). Service should not throw errors; unsupported devices silently skip vibration.",
+      "priority": "high",
+      "wave": 3,
+      "estimated_files": [
+        "src/services/VibrationService.ts"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-005",
+        "TASK-007",
+        "TASK-008"
+      ],
+      "acceptance_criteria": [
+        "triggerNotification() calls Expo Haptics.notificationAsync with Success feedback type",
+        "Graceful fallback: on unsupported devices, method resolves without throwing; no app crash",
+        "All methods return Promises that resolve after haptic execution",
+        "triggerSuccess() and triggerError() provide distinct haptic patterns (multi-pulse vs single)"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-007",
+      "title": "Implement RandomService for random number generation",
+      "description": "Create a centralized service for random number generation used by Dice and Draw features. Implement RandomService as singleton exporting: rollDice(count: number, sides: number = 6): number[] that returns an array of `count` random integers between 1 and `sides` (inclusive); selectRandomItem<T>(items: T[]): T that returns one random item from the array with uniform probability. Use Math.random() for generation (cryptographic randomness not required per ADR-025 scope). Implementation should be testable; consider seeding for test reproducibility.",
+      "priority": "high",
+      "wave": 3,
+      "estimated_files": [
+        "src/services/RandomService.ts"
+      ],
+      "depends_on": [
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-005",
+        "TASK-006",
+        "TASK-008"
+      ],
+      "acceptance_criteria": [
+        "rollDice(3, 6) returns array of exactly 3 numbers, each 1-6 inclusive",
+        "rollDice(1, 20) returns array with one number, 1-20 inclusive",
+        "selectRandomItem([1, 2, 3]) returns one of {1, 2, 3} with roughly equal probability over many calls",
+        "selectRandomItem on single-item array returns that item",
+        "Functions are pure and deterministic given a seed (if implemented)"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-008",
+      "title": "Implement Navigation infrastructure for tab-based routing",
+      "description": "Create navigation context and components for tab-based routing between Dice, Score, and Draw features. Implement a NavigationContext (using React.createContext) that holds currentTab state (string: 'dice' | 'score' | 'draw'). Create useNavigation() custom hook exporting { currentTab, setCurrentTab } for component access. Create BottomTabNavigator component that renders three tabs (labeled 'Dice', 'Score', 'Draw') using React Native buttons or a custom tab bar. Tapping a tab calls setCurrentTab() and re-renders the active feature screen. This component is a simple router; it does not directly render feature screens (that is done in App.tsx, Task-020). Per ADR-008, use React Hooks and Context only; no Redux or external routing library.",
+      "priority": "critical",
+      "wave": 3,
+      "estimated_files": [
+        "src/components/Navigation/BottomTabNavigator.tsx",
+        "src/components/Navigation/useNavigation.ts"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-003"
+      ],
+      "can_parallelize_with": [
+        "TASK-005",
+        "TASK-006",
+        "TASK-007"
+      ],
+      "acceptance_criteria": [
+        "NavigationContext created using React.createContext, stores currentTab: string",
+        "useNavigation() hook returns { currentTab, setCurrentTab }; calling setCurrentTab('score') updates context",
+        "BottomTabNavigator renders three tappable tabs with labels 'Dice', 'Score', 'Draw'",
+        "Tapping a tab changes currentTab; component re-renders to reflect selection",
+        "Tab styling uses design system colors and spacing from TASK-003",
+        "Touch targets are ≥48x48 dp (NFR-A-001)"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-009",
+      "title": "Implement Dice animation logic and roll mechanics",
+      "description": "Create the core dice rolling logic and animation infrastructure for the Dice feature. Implement useRollDice() custom hook that manages state: diceCount (1-6), isRolling (boolean), diceValues (array of numbers), totalSum (number). Hook exports methods: selectDiceCount(count: number) sets diceCount; rollDice() calls RandomService.rollDice(diceCount, 6) to generate values, sets isRolling=true, triggers DiceAnimation, then updates diceValues and totalSum after animation completes. Create DiceAnimation component that accepts props { diceValues, isRolling, diceCount } and uses React Native Animated API (per ADR-004) to render a spinning effect. During isRolling=true, animate rotation of dice container (0° to 360°+) over configurable duration (0.5-1.5s with Animated.timing and easeOut). After animation, display individual die values as text (1-6) and sum prominently. No persistence is required for rolls (ADR-025).",
+      "priority": "high",
+      "wave": 4,
+      "estimated_files": [
+        "src/components/Dice/useRollDice.ts",
+        "src/components/Dice/DiceAnimation.tsx"
+      ],
+      "depends_on": [
+        "TASK-001",
+        "TASK-003",
+        "TASK-007"
+      ],
+      "can_parallelize_with": [
+        "TASK-012",
+        "TASK-016"
+      ],
+      "acceptance_criteria": [
+        "useRollDice() initializes state: diceCount=1, isRolling=false, diceValues=[], totalSum=0",
+        "selectDiceCount(4) updates diceCount to 4; clears diceValues and totalSum",
+        "rollDice() generates random values via RandomService.rollDice(diceCount, 6) and sets isRolling=true",
+        "DiceAnimation receives isRolling prop and animates rotation for 0.5-1.5s when true",
+        "After animation completes, diceValues contains correct random values (e.g., [3, 5, 2]) and totalSum is accurate (10)",
+        "Animation uses React Native Animated.timing() with easeOut or similar easing function",
+        "Component renders die values as text (1, 2, 3, 4, 5, 6) with sum below"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-010",
+      "title": "Implement DiceScreen and DiceSelector UI components",
+      "description": "Create the user-facing UI for the Dice feature that integrates the roll logic from TASK-009. Implement DiceSelector component that renders six buttons/controls (one for each dice quantity 1-6) allowing user selection. Implement DiceScreen as main Dice feature screen that: (1) renders DiceSelector at top, (2) displays large 'Roll' button, (3) integrates DiceAnimation component below, (4) manages useRollDice hook state. Tapping a quantity in DiceSelector calls hook's selectDiceCount(). Tapping 'Roll' calls hook's rollDice(). All styling uses design system tokens from TASK-003. Touch targets must be ≥48x48 dp. Create DiceScreen.styles.ts with StyleSheet definitions.",
+      "priority": "high",
+      "wave": 5,
+      "estimated_files": [
+        "src/components/Dice/DiceScreen.tsx",
+        "src/components/Dice/DiceSelector.tsx",
+        "src/components/Dice/DiceScreen.styles.ts"
+      ],
+      "depends_on": [
+        "TASK-009"
+      ],
+      "can_parallelize_with": [
+        "TASK-013",
+        "TASK-017"
+      ],
+      "acceptance_criteria": [
+        "DiceSelector renders 6 buttons labeled '1', '2', '3', '4', '5', '6'",
+        "Tapping a button calls selectDiceCount() from useRollDice hook",
+        "DiceScreen integrates DiceSelector, Roll button, and DiceAnimation",
+        "Roll button is visually distinct and ≥48x48 dp",
+        "After tapping Roll, DiceAnimation plays spinning effect and displays results",
+        "Results remain visible until user taps Roll again or changes dice quantity",
+        "Layout is responsive and readable on phone and tablet sizes (5-12 inches)"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-011",
+      "title": "Create unit tests for Dice feature",
+      "description": "Write comprehensive unit tests for Dice components and hooks. Create src/components/Dice/__tests__/useRollDice.test.ts testing: selectDiceCount updates state; rollDice generates correct count of values; values are in range 1-6; sum is accurate. Create src/components/Dice/__tests__/DiceScreen.test.tsx testing: selector buttons exist and are clickable; roll button exists; animation displays correct values; component state management works. Use Jest and React Native Testing Library. Aim for >80% code coverage of Dice module. Mock RandomService for deterministic testing.",
+      "priority": "medium",
+      "wave": 6,
+      "estimated_files": [
+        "src/components/Dice/__tests__/useRollDice.test.ts",
+        "src/components/Dice/__tests__/DiceScreen.test.tsx"
+      ],
+      "depends_on": [
+        "TASK-009",
+        "TASK-010"
+      ],
+      "can_parallelize_with": [
+        "TASK-014",
+        "TASK-018"
+      ],
+      "acceptance_criteria": [
+        "Test: selectDiceCount(3) updates diceCount state to 3",
+        "Test: rollDice() calls RandomService.rollDice and updates diceValues with 3 values in range 1-6",
+        "Test: totalSum equals sum of diceValues (e.g., [2, 4, 1] → sum 7)",
+        "Test: DiceSelector renders 6 buttons; pressing button 4 calls selectDiceCount(4)",
+        "Test: Roll button exists and triggers rollDice()",
+        "Test: Animation state (isRolling) transitions correctly",
+        "Code coverage report shows >80% for useRollDice and DiceScreen"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-012",
+      "title": "Implement GameSessionForm and GameSessionList components",
+      "description": "Create form and list components for Score feature session management. Implement GameSessionForm component with: (1) input fields for up to 8 player names, (2) form validation using validatePlayerName() from TASK-004, (3) 'Create Game' button that: creates GameSession object with generated sessionId (e.g., Date.now() + random suffix), initializes players and scores=0 for each, sets createdAt to ISO timestamp, calls StorageService.saveGameSession(), and returns new session. Implement GameSessionList component that: (1) calls StorageService.listAllGameSessions() on mount, (2) displays all sessions in a list with player names and creation timestamp, (3) renders delete option (long-press or menu icon) that calls StorageService.deleteGameSession(), (4) allows selection to load a game (callback to parent component). Create ScoreScreen.styles.ts with shared styles. Both components use design system from TASK-003.",
+      "priority": "high",
+      "wave": 4,
+      "estimated_files": [
+        "src/components/Score/GameSessionForm.tsx",
+        "src/components/Score/GameSessionList.tsx",
+        "src/components/Score/ScoreScreen.styles.ts"
+      ],
+      "depends_on": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-002",
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-009",
+        "TASK-016"
+      ],
+      "acceptance_criteria": [
+        "GameSessionForm renders input fields for player names (1-8 players)",
+        "validatePlayerName() is called on form submission; invalid names show error message",
+        "Create Game button generates UUID sessionId, initializes players array and scores={} object, calls saveGameSession()",
+        "GameSessionList fetches all sessions via listAllGameSessions() and displays them",
+        "Each list item shows player names (comma-separated or list) and creation timestamp (formatted via formatTimestamp)",
+        "Delete option (swipe/menu) calls deleteGameSession() and removes item from list",
+        "Form and list use touch targets ≥48x48 dp"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-013",
+      "title": "Implement useGameSession hook and score display components",
+      "description": "Create the core state management and display logic for active game sessions. Implement useGameSession() hook that manages: activeSession (GameSession | null), allSessions (GameSession[]), and methods: createGameSession(playerNames: string[]): Promise<GameSession> calls StorageService.saveGameSession() and updates state; loadGameSession(sessionId): Promise<GameSession> calls StorageService.loadGameSession() and sets activeSession; deleteGameSession(sessionId): Promise<void> calls StorageService.deleteGameSession() and updates state; updatePlayerScore(playerId: string, delta: number): Promise<void> modifies activeSession.scores[playerId] by delta, updates lastModifiedAt, calls saveGameSession(); listAllSessions(): Promise<GameSession[]> calls StorageService.listAllGameSessions() and updates allSessions. Implement ScoreBoard component that displays activeSession with player names and scores. Implement PlayerScoreItem component that renders one player row with name, current score, and +/- buttons (each button calls updatePlayerScore with delta +1 or -1). Changes persist to storage within 200ms (NFR-P-004).",
+      "priority": "high",
+      "wave": 5,
+      "estimated_files": [
+        "src/components/Score/useGameSession.ts",
+        "src/components/Score/ScoreBoard.tsx",
+        "src/components/Score/PlayerScoreItem.tsx"
+      ],
+      "depends_on": [
+        "TASK-005",
+        "TASK-002",
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-010",
+        "TASK-017"
+      ],
+      "acceptance_criteria": [
+        "useGameSession hook returns { activeSession, allSessions, createGameSession, loadGameSession, deleteGameSession, updatePlayerScore, listAllSessions }",
+        "createGameSession(['Alice', 'Bob']) creates GameSession with sessionId, players=[{id, 'Alice'}, {id, 'Bob'}], scores={p1: 0, p2: 0}, persists to storage",
+        "updatePlayerScore(playerId, +5) increments player's score by 5, updates lastModifiedAt, persists within 200ms",
+        "ScoreBoard displays all players and their current scores in a clear layout",
+        "PlayerScoreItem renders player name, score, and +/- buttons",
+        "Tapping + button calls updatePlayerScore(playerId, +1); tapping - calls updatePlayerScore(playerId, -1)",
+        "Touch targets for +/- buttons are ≥48x48 dp",
+        "Score values display with adequate contrast (WCAG AA)"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-014",
+      "title": "Implement ScoreScreen main component",
+      "description": "Create the main Score feature screen that orchestrates form, list, and scoreboard components. Implement ScoreScreen component that: (1) manages conditional rendering based on app state (showing list, form, or scoreboard); (2) integrates useGameSession hook; (3) renders GameSessionList when no active session; (4) shows GameSessionForm when user taps 'New Game'; (5) renders ScoreBoard when activeSession exists; (6) allows navigation back to list from scoreboard. Implement state machine: list → form → scoreboard → list (cycle). Handle edge cases: empty session list, maximum players reached, deletion during active game. All transitions are smooth and state is properly maintained across feature re-mounts (via useGameSession persistence).",
+      "priority": "high",
+      "wave": 6,
+      "estimated_files": [
+        "src/components/Score/ScoreScreen.tsx"
+      ],
+      "depends_on": [
+        "TASK-012",
+        "TASK-013"
+      ],
+      "can_parallelize_with": [
+        "TASK-011",
+        "TASK-018"
+      ],
+      "acceptance_criteria": [
+        "ScoreScreen displays GameSessionList by default",
+        "'New Game' button shows GameSessionForm",
+        "Creating game in form transitions to ScoreBoard with activeSession displayed",
+        "Selecting a session from list loads it and transitions to ScoreBoard",
+        "'Back' or menu option returns from ScoreBoard to GameSessionList",
+        "Deleting activeSession from list transitions back to list view",
+        "All state persists correctly when feature is unmounted and remounted"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-015",
+      "title": "Create unit tests for Score feature",
+      "description": "Write comprehensive unit tests for Score components and hooks. Create src/components/Score/__tests__/useGameSession.test.ts testing: game creation persists to storage; score updates modify state and persist; game loading restores exact state; game deletion removes from storage. Create src/components/Score/__tests__/ScoreScreen.test.tsx testing: list displays saved games; new game form creates session; scoreboard displays players and scores; +/- buttons modify scores. Use Jest and React Native Testing Library. Mock StorageService to simulate persistence. Aim for >80% code coverage of Score module.",
+      "priority": "medium",
+      "wave": 7,
+      "estimated_files": [
+        "src/components/Score/__tests__/useGameSession.test.ts",
+        "src/components/Score/__tests__/ScoreScreen.test.tsx"
+      ],
+      "depends_on": [
+        "TASK-014"
+      ],
+      "can_parallelize_with": [
+        "TASK-019"
+      ],
+      "acceptance_criteria": [
+        "Test: createGameSession(['Alice', 'Bob']) calls saveGameSession and returns GameSession with correct sessionId, players, and scores",
+        "Test: updatePlayerScore(playerId, +3) increments score and calls saveGameSession",
+        "Test: loadGameSession(sessionId) calls loadGameSession from storage and sets activeSession",
+        "Test: deleteGameSession(sessionId) removes from allSessions and storage",
+        "Test: ScoreScreen displays GameSessionList by default",
+        "Test: Tapping 'New Game' shows GameSessionForm",
+        "Test: Creating game transitions to ScoreBoard with correct player names and scores",
+        "Code coverage >80% for useGameSession and ScoreScreen"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-016",
+      "title": "Implement useTouchHandling hook and TouchCanvas component",
+      "description": "Create multi-touch detection and rendering for the Draw feature. Implement useTouchHandling() hook that: (1) maintains activeTouches state (Map<touchID, {x, y, color, isStable}>), (2) uses React Native PanResponder (per ADR-005) to detect touch start/move/end events, (3) assigns unique color from palette (cycling per ADR-016: color = palette[touchIndex % 8]) to each new touch, (4) tracks touch position in real-time, (5) removes touch on release. Hook returns { activeTouches, handleTouchStart, handleTouchMove, handleTouchEnd } for use by TouchCanvas. Implement TouchCanvas component that: (1) accepts activeTouches and panHandlers from hook, (2) renders colored circle for each touch at its (x, y) position, (3) circle diameter ~40-60dp, (4) uses color from activeTouches, (5) updates 60 FPS (NFR-P-002: touch latency <100ms). PanResponder manages gesture recognition; component does not throw errors on >10 simultaneous touches (gracefully handles cycling colors).",
+      "priority": "high",
+      "wave": 4,
+      "estimated_files": [
+        "src/components/Draw/useTouchHandling.ts",
+        "src/components/Draw/TouchCanvas.tsx"
+      ],
+      "depends_on": [
+        "TASK-007",
+        "TASK-003",
+        "TASK-001"
+      ],
+      "can_parallelize_with": [
+        "TASK-009",
+        "TASK-012"
+      ],
+      "acceptance_criteria": [
+        "useTouchHandling hook initializes activeTouches as empty Map",
+        "Detecting first touch creates entry: activeTouches.set(touchID, {x: 100, y: 200, color: RED, isStable: false})",
+        "Detecting second touch assigns second color (BLUE), third touch gets YELLOW, etc.",
+        "9th touch reuses first color (RED) per color-cycling logic",
+        "Touch move event updates x, y position in real-time",
+        "Touch end removes entry from activeTouches",
+        "TouchCanvas renders circles at touch positions with assigned colors",
+        "Circles are visible and update smoothly (60 FPS) as fingers move",
+        "Component handles 10+ simultaneous touches without crashes"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-017",
+      "title": "Implement useWinnerSelection hook with stability detection",
+      "description": "Create the timer and winner selection logic for the Draw feature. Implement useWinnerSelection() hook that: (1) monitors touch stability for 3 seconds (per FR-T-004), (2) detects touch position changes and resets timer if movement >5-10mm (ADR-011 tolerance), (3) returns selectedWinnerId (string) and isStable (boolean), (4) when 3 seconds elapse without movement, calls VibrationService.triggerNotification() and selects winner via RandomService.selectRandomItem(Object.keys(activeTouches)). Hook accepts activeTouches from useTouchHandling and returns { selectedWinnerId, isStable, resetSelection }. If all touches are released before 3 seconds, timer resets to 0 (AFxx-A of UC-005). Stability check: compute distance from initial touch position; if distance changes >10mm, reset timer.",
+      "priority": "high",
+      "wave": 5,
+      "estimated_files": [
+        "src/components/Draw/useWinnerSelection.ts"
+      ],
+      "depends_on": [
+        "TASK-006",
+        "TASK-007",
+        "TASK-016"
+      ],
+      "can_parallelize_with": [
+        "TASK-010",
+        "TASK-013"
+      ],
+      "acceptance_criteria": [
+        "Hook initializes isStable=false, selectedWinnerId=null",
+        "With activeTouches present and stationary, timer increments from 0 to 3 seconds",
+        "If touch moves >10mm, timer resets to 0",
+        "After 3 seconds of stability, isStable becomes true and selectedWinnerId is set to one random touchID",
+        "Stability event triggers VibrationService.triggerNotification()",
+        "If all touches are released before 3 seconds, timer resets and isStable becomes false",
+        "resetSelection() clears selectedWinnerId and isStable for next round"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-018",
+      "title": "Implement DrawScreen main component",
+      "description": "Create the Draw feature screen integrating touch handling, winner selection, and animations. Implement DrawScreen component that: (1) integrates useTouchHandling and useWinnerSelection hooks, (2) renders TouchCanvas with activeTouches, (3) displays instructions at top ('Place fingers and hold still for 3 seconds'), (4) upon winner selection (isStable=true, selectedWinnerId set): enlarges winner circle via Animated.timing (scale 1.5x over 300ms), animates other circles fade-out (opacity 0 over 500-1000ms), keeps winner visible for 2-3 seconds, (5) 'Reset' button clears state and returns to ready. All animations use React Native Animated API (per ADR-004) for 60 FPS performance. Haptic feedback is triggered by useWinnerSelection; DrawScreen does not need to handle haptics explicitly.",
+      "priority": "high",
+      "wave": 6,
+      "estimated_files": [
+        "src/components/Draw/DrawScreen.tsx",
+        "src/components/Draw/DrawScreen.styles.ts"
+      ],
+      "depends_on": [
+        "TASK-016",
+        "TASK-017"
+      ],
+      "can_parallelize_with": [
+        "TASK-011",
+        "TASK-014"
+      ],
+      "acceptance_criteria": [
+        "DrawScreen displays clear instructions for multi-touch placement",
+        "TouchCanvas is rendered and touches appear as colored circles",
+        "After 3 seconds of stable touches, winner circle enlarges (scale 1.5x) and other circles fade (opacity 0)",
+        "Winner circle remains visible for 2-3 seconds",
+        "Haptic feedback (vibration) is triggered on selection (via VibrationService)",
+        "'Reset' button clears state and returns to initial ready state",
+        "All animations run at 60 FPS",
+        "Responsive layout for phone and tablet sizes"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-019",
+      "title": "Create unit tests for Draw feature",
+      "description": "Write comprehensive unit tests for Draw components and hooks. Create src/components/Draw/__tests__/useTouchHandling.test.ts testing: touch detection creates entries; color assignment is correct; movement updates position; release removes entry. Create src/components/Draw/__tests__/useWinnerSelection.test.ts testing: stability timer increments; movement resets timer; 3-second completion selects winner; vibration is triggered. Create src/components/Draw/__tests__/DrawScreen.test.tsx testing: instructions display; touches render as circles; winner animation plays; reset clears state. Use Jest and React Native Testing Library. Mock PanResponder, VibrationService, RandomService. Aim for >80% code coverage.",
+      "priority": "medium",
+      "wave": 7,
+      "estimated_files": [
+        "src/components/Draw/__tests__/useTouchHandling.test.ts",
+        "src/components/Draw/__tests__/useWinnerSelection.test.ts",
+        "src/components/Draw/__tests__/DrawScreen.test.tsx"
+      ],
+      "depends_on": [
+        "TASK-018"
+      ],
+      "can_parallelize_with": [
+        "TASK-015"
+      ],
+      "acceptance_criteria": [
+        "Test: First touch creates activeTouches entry with RED color",
+        "Test: Second touch gets BLUE color; ninth touch cycles back to RED",
+        "Test: Touch move updates x, y position",
+        "Test: Touch release removes entry from activeTouches",
+        "Test: With 3 touches stationary for 3 seconds, selectedWinnerId is one of the 3",
+        "Test: Touch movement >10mm resets stability timer",
+        "Test: Winner selection triggers VibrationService.triggerNotification()",
+        "Test: DrawScreen displays instructions and touches as circles",
+        "Test: Winner animation plays and circle enlarges",
+        "Code coverage >80% for Draw module"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-020",
+      "title": "Create App.tsx root component and entry point",
+      "description": "Implement the root application component that orchestrates Navigation and all three feature screens. Create src/App.tsx that: (1) wraps application in NavigationContext provider, (2) initializes StorageService.cleanupOldSessions(60) on mount (per ADR-018), (3) renders BottomTabNavigator, (4) conditionally renders DiceScreen, ScoreScreen, or DrawScreen based on useNavigation's currentTab. Create src/index.tsx as app entry point that imports App and calls registerRootComponent(App) (Expo default). Ensure proper component tree structure and state management. App component should be minimal; business logic resides in feature components and hooks. Initial active tab is Dice per application requirements.",
+      "priority": "critical",
+      "wave": 8,
+      "estimated_files": [
+        "src/App.tsx",
+        "src/index.tsx"
+      ],
+      "depends_on": [
+        "TASK-008",
+        "TASK-010",
+        "TASK-014",
+        "TASK-018"
+      ],
+      "can_parallelize_with": [],
+      "acceptance_criteria": [
+        "src/App.tsx renders NavigationContext.Provider wrapping entire app",
+        "StorageService.cleanupOldSessions(60) is called on mount (async)",
+        "BottomTabNavigator is rendered and allows tab switching",
+        "Conditional rendering: when currentTab='dice', DiceScreen renders; 'score' → ScoreScreen; 'draw' → DrawScreen",
+        "src/index.tsx imports App and calls registerRootComponent(App)",
+        "App launches without errors on physical device or emulator",
+        "Initial tab on launch is Dice"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-021",
+      "title": "Create end-to-end integration tests",
+      "description": "Write end-to-end tests validating full app functionality across all features. Create __tests__/integration/e2e.test.tsx with scenarios: (1) Launch app, verify Dice tab active and Roll button visible, (2) Roll dice 3 times with different quantities, verify results display correctly, (3) Switch to Score tab, create new game with 3 players, (4) Modify scores for all players (+5, -2, +1), verify scores persist, (5) Create second game, verify both games exist in list, (6) Switch back to first game, verify scores match previous session, (7) Delete first game, verify list updated, (8) Switch to Draw tab, verify instructions display, (9) Test multi-touch with mock 5 simultaneous touches, verify winner selection after 3 seconds, (10) Reset and repeat draw cycle. Test that app state is correct after tab switches and that persistence survives app restart (simulated). All flows should complete without errors. Use Jest with mocked timers and StorageService.",
+      "priority": "high",
+      "wave": 9,
+      "estimated_files": [
+        "__tests__/integration/e2e.test.tsx",
+        "__tests__/integration/setup.ts"
+      ],
+      "depends_on": [
+        "TASK-020"
+      ],
+      "can_parallelize_with": [
+        "TASK-022"
+      ],
+      "acceptance_criteria": [
+        "Scenario 1: App launches with Dice tab active; Roll button and DiceSelector visible",
+        "Scenario 2: Rolling dice 3 times produces 3 different results; sums are accurate",
+        "Scenario 3: Switching to Score and creating game persists to StorageService",
+        "Scenario 4: Modifying player scores updates display and storage within 200ms",
+        "Scenario 5: Creating second game; both games appear in list with distinct players",
+        "Scenario 6: Loading first game restores exact scores",
+        "Scenario 7: Deleting game removes from list and storage",
+        "Scenario 8: Draw tab shows instructions and canvas",
+        "Scenario 9: Simulating 5 touches; after 3 seconds, one is selected as winner",
+        "Scenario 10: Reset clears winner and allows new draw cycle"
+      ],
+      "context_files": [],
+      "existing_files_to_modify": []
+    },
+    {
+      "id": "TASK-022",
+      "title": "Accessibility audit and fixes for VoiceOver/TalkBack support",
+      "description": "Conduct accessibility review and add VoiceOver (iOS) and TalkBack (Android) support per NFR-A-005. Add accessibilityLabel and accessibilityRole/accessibilityHint to all interactive elements in priority order: (1) Roll Dice button, (2) Score +/− buttons, (3) New Game button, (4) Delete Session button, (5) Draw Canvas touch area. Examples: Roll button → accessibilityLabel='Roll the dice', accessibilityHint='Double tap to roll'; +/- button → accessibilityLabel='Increase Alice's score', accessibilityRole='button'. Verify all text has contrast ≥4.5:1 (WCAG AA per NFR-A-002) using contrast checker or visual inspection. Ensure text respects system font scaling (iOS Dynamic Type, Android Text Scale). Test with VoiceOver on iOS simulator or device, and TalkBack on Android emulator or device. Document any limitations and deferred improvements. Create or update ACCESSIBILITY.md with testing results.",
+      "priority": "high",
+      "wave": 9,
+      "estimated_files": [
+        "ACCESSIBILITY.md"
+      ],
+      "depends_on": [
+        "TASK-011",
+        "TASK-015",
+        "TASK-019"
+      ],
+      "can_parallelize_with": [
+        "TASK-021"
+      ],
+      "acceptance_criteria": [
+        "All buttons (Roll, +/−, Create, Delete, Reset) have descriptive accessibilityLabel",
+        "All interactive elements have accessibilityRole set (e.g., 'button', 'tab', 'adjustable' for sliders)",
+        "accessibilityHint provided for less obvious actions (e.g., 'Double tap to roll the dice')",
+        "Text contrast measured: TEXT_PRIMARY on BG_PRIMARY ≥4.5:1; large text ≥3:1",
+        "Text sizing respects system settings: increasing device font size increases app text proportionally",
+        "VoiceOver tested on iOS: all critical elements readable, navigation works",
+        "TalkBack tested on Android: all critical elements readable, navigation works",
+        "ACCESSIBILITY.md documents tested elements, results, and any known limitations"
+      ],
+      "context_files": [
+        "WCAG 2.1 AA guidelines (external reference)"
+      ],
+      "existing_files_to_modify": [
+        {
+          "path": "src/components/Dice/DiceScreen.tsx",
+          "current_purpose": "Main Dice feature UI component; needs accessibilityLabel on Roll button and DiceSelector items"
+        },
+        {
+          "path": "src/components/Score/ScoreBoard.tsx",
+          "current_purpose": "Displays active game and player scores; needs accessibilityLabel on +/− buttons and player name rows"
+        },
+        {
+          "path": "src/components/Score/GameSessionList.tsx",
+          "current_purpose": "Lists saved games; needs accessibilityLabel on list items and delete buttons"
+        },
+        {
+          "path": "src/components/Draw/DrawScreen.tsx",
+          "current_purpose": "Main Draw feature UI; needs accessibilityLabel on Canvas and Reset button, instructions must be readable"
+        },
+        {
+          "path": "src/components/Navigation/BottomTabNavigator.tsx",
+          "current_purpose": "Tab navigation; needs accessibilityLabel and accessibilityRole on each tab button"
+        }
+      ]
+    }
+  ]
+}
