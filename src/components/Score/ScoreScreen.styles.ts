@@ -220,4 +220,101 @@ export const scoreStyles = StyleSheet.create({
     textAlign: 'center',
     marginTop: SPACING.sm,
   },
+
+  // ── Session list ───────────────────────────────────────────────────────────
+  listContainer: {
+    flex: 1,
+    padding: SPACING.sm,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.sm,
+  },
+  listTitle: {
+    fontSize: FONT_SIZE.heading,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+  },
+  listNewGameButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: BORDER_RADIUS.md,
+    paddingVertical: SPACING.xs / 2,
+    paddingHorizontal: SPACING.sm,
+    minHeight: LAYOUT.minTouchTarget,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...SHADOWS.sm,
+  },
+  listNewGameButtonLabel: {
+    fontSize: FONT_SIZE.caption,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.background,
+  },
+  sessionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.sm,
+    marginBottom: SPACING.xs,
+    ...SHADOWS.sm,
+  },
+  sessionCardTouchable: {
+    flex: 1,
+  },
+  sessionCardRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  sessionCardContent: {
+    flex: 1,
+    marginRight: SPACING.xs,
+  },
+  sessionCardPlayers: {
+    fontSize: FONT_SIZE.body,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  sessionCardScores: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    marginBottom: 4,
+  },
+  sessionCardTimestamp: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textDisabled,
+  },
+  sessionCardDeleteButton: {
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    borderRadius: BORDER_RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  sessionCardDeleteLabel: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.error,
+    fontWeight: FONT_WEIGHT.bold,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.lg,
+  },
+  emptyStateText: {
+    fontSize: FONT_SIZE.body,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: SPACING.sm,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
