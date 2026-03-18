@@ -11,7 +11,7 @@
  * (ScoreScreen) owns the authoritative session state.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 
 import { GameSession } from '../../types';
@@ -96,4 +96,8 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({
   );
 };
 
-export default ScoreBoard;
+/**
+ * ScoreBoard is memoized to prevent re-renders when the parent ScoreScreen
+ * updates view-switching state that does not affect the board. NFR-P-003.
+ */
+export default memo(ScoreBoard);

@@ -13,7 +13,7 @@
  * (color cycling), ADR-020 (haptic fallback).
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, memo } from 'react';
 import {
   View,
   Text,
@@ -57,12 +57,11 @@ const DrawScreen: React.FC = () => {
   // ── Derived display state ─────────────────────────────────────────────────
 
   /**
-   * Returns the appropriate instruction text for the current draw phase.
-   * When no touches are active, shows the initial prompt.
-   * During stability detection, shows elapsed seconds.
-   * During / after selection, confirms the outcome.
+   * Memoized instruction text for the current draw phase.
+   * Recomputes only when the relevant state values change, avoiding
+   * unnecessary string allocations on every render. NFR-P-001.
    */
-  const instructionText = (): string => {
+  const instructionText = useMemo((): string => {
     if (isSelecting && winnerId !== null) return 'Winner selected!';
     if (isSelecting) return 'Selecting...';
     if (activeTouches.length === 0) return 'Place your fingers and wait...';
@@ -71,14 +70,17 @@ const DrawScreen: React.FC = () => {
       return `Hold still... ${elapsed}s / 3.0s`;
     }
     return 'Hold still...';
-  };
+  }, [isSelecting, winnerId, activeTouches.length, stabilityProgress]);
 
   /**
    * The "Select Now" button is shown only when at least one touch is active
    * and no selection is already in progress.  It requires ≥1 touch so there
    * is something to select from. FR-T-011.
    */
-  const showSelectNow = activeTouches.length >= 1 && !isSelecting;
+  const showSelectNow = useMemo(
+    () => activeTouches.length >= 1 && !isSelecting,
+    [activeTouches.length, isSelecting],
+  );
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -86,7 +88,7 @@ const DrawScreen: React.FC = () => {
     <View style={styles.container}>
       {/* Instruction / status banner ───────────────────────────────────── */}
       <View style={styles.instructionsContainer}>
-        <Text style={styles.instructionsText}>{instructionText()}</Text>
+        <Text style={styles.instructionsText}>{instructionText}</Text>
 
         {/* Stability progress bar — visible only while stability is building */}
         {stabilityProgress > 0 && !isSelecting && (
@@ -207,4 +209,8 @@ const localStyles = StyleSheet.create({
   },
 });
 
-export default DrawScreen;
+/**
+ * DrawScreen is memoized so that navigator re-renders (e.g. tab focus changes)
+ * do not re-mount or re-render the canvas unnecessarily. NFR-P-002.
+ */
+export default memo(DrawScreen);

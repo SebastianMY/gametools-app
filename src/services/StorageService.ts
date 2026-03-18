@@ -6,6 +6,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { InteractionManager } from 'react-native';
 import { GameSession } from '../types';
 
 const SESSION_KEY_PREFIX = 'game_session_';
@@ -140,6 +141,24 @@ class StorageService {
     } catch {
       // Gracefully ignore cleanup errors (no-op)
     }
+  }
+
+  /**
+   * Schedules stale session cleanup to run after all pending JS interactions
+   * and animations complete, ensuring startup UI is never blocked.
+   *
+   * Per ADR-018 (60-day retention) and NFR-P-006 (app startup <3 s):
+   * this is the preferred way to invoke cleanup on app launch.
+   * Cleanup runs on the JS thread once the first frame renders and
+   * animations finish — invisible to the user.
+   */
+  scheduleStartupCleanup(retentionDays: number = 60): void {
+    InteractionManager.runAfterInteractions(() => {
+      // Fire-and-forget: errors are swallowed inside cleanupOldSessions.
+      this.cleanupOldSessions(retentionDays).catch(() => {
+        // No-op: cleanupOldSessions already handles errors internally.
+      });
+    });
   }
 }
 

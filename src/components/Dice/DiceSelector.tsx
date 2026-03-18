@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import styles from './DiceScreen.styles';
 
@@ -55,4 +55,9 @@ const DiceSelector: React.FC<DiceSelectorProps> = ({ selectedCount, onSelect }) 
   );
 };
 
-export default DiceSelector;
+/**
+ * DiceSelector is memoized to prevent re-renders when the parent DiceScreen
+ * updates rolling state or dice values — the selector only changes when
+ * selectedCount or onSelect changes. NFR-P-001.
+ */
+export default memo(DiceSelector);

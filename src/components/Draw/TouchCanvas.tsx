@@ -8,7 +8,7 @@
  * Architecture: FR-T-002 (colored circles), NFR-P-002 (latency ≤100 ms).
  */
 
-import React from 'react';
+import React, { memo } from 'react';
 import { View, PanResponderInstance } from 'react-native';
 import { TouchPoint } from './useTouchHandling';
 import { styles, CIRCLE_RADIUS } from './DrawScreen.styles';
@@ -75,4 +75,9 @@ const TouchCanvas: React.FC<TouchCanvasProps> = ({
   );
 };
 
-export default TouchCanvas;
+/**
+ * TouchCanvas is memoized to prevent re-renders when parent state (e.g.
+ * winnerId, isSelecting) changes but activeTouches and panHandlers remain
+ * stable. NFR-P-002: multi-touch rendering at 60 FPS.
+ */
+export default memo(TouchCanvas);
