@@ -6,16 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS } from '../../styles/colors';
 import { FONT_SIZE, FONT_WEIGHT, SPACING } from '../../styles/theme';
 import { TabName } from './useNavigation';
-
-// ─── Placeholder screens ──────────────────────────────────────────────────────
-// These will be replaced by TASK-007 (Dice), TASK-009 (Score), TASK-013 (Draw).
-
-const DicePlaceholder: React.FC = () => (
-  <View style={styles.placeholder}>
-    <Text style={styles.placeholderTitle}>🎲 Dice</Text>
-    <Text style={styles.placeholderSubtitle}>Coming soon</Text>
-  </View>
-);
+import DiceScreen from '../Dice/DiceScreen';
 
 const ScorePlaceholder: React.FC = () => (
   <View style={styles.placeholder}>
@@ -48,8 +39,8 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
  * via React Navigation's built-in mechanism, keeping the active tab across
  * re-renders and providing cross-platform tab bar styling.
  *
- * Placeholder screens will be replaced by dedicated feature screens in
- * TASK-007 (Dice), TASK-009 (Score), and TASK-013 (Draw).
+ * Placeholder screens for Score and Draw will be replaced by dedicated feature
+ * screens in TASK-009 (Score) and TASK-013 (Draw). The Dice screen is now live.
  */
 const BottomTabNavigator: React.FC = () => {
   return (
@@ -68,7 +59,7 @@ const BottomTabNavigator: React.FC = () => {
       >
         <Tab.Screen
           name="Dice"
-          component={DicePlaceholder}
+          component={DiceScreen}
           options={{
             title: 'Dice',
             tabBarLabel: 'Dice',
