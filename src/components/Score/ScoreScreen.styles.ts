@@ -175,6 +175,15 @@ export const scoreStyles = StyleSheet.create({
     fontWeight: FONT_WEIGHT.bold,
     color: COLORS.textPrimary,
   },
+  boardSubtitle: {
+    fontSize: FONT_SIZE.caption,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  boardTitleGroup: {
+    flex: 1,
+    marginRight: SPACING.xs,
+  },
   newGameButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
@@ -198,7 +207,6 @@ export const scoreStyles = StyleSheet.create({
     marginBottom: SPACING.xs,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     ...SHADOWS.sm,
   },
   playerCardName: {
@@ -206,13 +214,35 @@ export const scoreStyles = StyleSheet.create({
     fontWeight: FONT_WEIGHT.bold,
     color: COLORS.textPrimary,
     flex: 1,
+    marginRight: SPACING.xs,
+  },
+  playerCardScoreArea: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
   playerCardScore: {
     fontSize: FONT_SIZE.subheading,
     fontWeight: FONT_WEIGHT.bold,
     color: COLORS.primary,
     minWidth: 48,
-    textAlign: 'right',
+    textAlign: 'center',
+  },
+  scoreButton: {
+    width: LAYOUT.minTouchTarget,
+    height: LAYOUT.minTouchTarget,
+    borderRadius: BORDER_RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  scoreButtonLabel: {
+    fontSize: FONT_SIZE.subheading,
+    fontWeight: FONT_WEIGHT.bold,
+    color: COLORS.textPrimary,
+    lineHeight: FONT_SIZE.subheading,
   },
   sessionInfo: {
     fontSize: FONT_SIZE.caption,
