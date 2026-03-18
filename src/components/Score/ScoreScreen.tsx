@@ -6,21 +6,20 @@
  *     Default view on first load and after returning from the board.
  *  2. **Form view** (`GameSessionForm`): collects player names and creates a
  *     new `GameSession` with scores initialized to 0.
- *  3. **Board view**: displays the active session's players and their scores.
+ *  3. **Board view** (`ScoreBoard`): displays the active session's players and
+ *     their scores, with +/− controls for live score tracking.
  *
  * Persistence (AsyncStorage via StorageService) is handled here — new sessions
  * are saved when created, and existing sessions are loaded on demand.
  */
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 
 import { GameSession } from '../../types';
-import { formatTimestamp } from '../../utils/formatters';
 import StorageService from '../../services/StorageService';
 import GameSessionForm from './GameSessionForm';
 import GameSessionList from './GameSessionList';
-import { scoreStyles as styles } from './ScoreScreen.styles';
+import ScoreBoard from './ScoreBoard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +68,22 @@ const ScoreScreen: React.FC = () => {
     setView('list');
   }, []);
 
+  /**
+   * Called by ScoreBoard when the user taps +/− for a player.
+   * Updates the activeSession scores immediately (within 50 ms, per NFR-P-003).
+   * Persistence is handled separately in TASK-012.
+   */
+  const handleScoreChange = useCallback((playerId: string, newScore: number) => {
+    setActiveSession(prev => {
+      if (prev === null) return prev;
+      return {
+        ...prev,
+        scores: { ...prev.scores, [playerId]: newScore },
+        lastModifiedAt: new Date().toISOString(),
+      };
+    });
+  }, []);
+
   // ── Render: list view ──────────────────────────────────────────────────────
 
   if (view === 'list') {
@@ -95,45 +110,11 @@ const ScoreScreen: React.FC = () => {
   }
 
   return (
-    <View style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.boardContainer}>
-          {/* Header */}
-          <View style={styles.boardHeader}>
-            <Text style={styles.boardTitle}>Score Board</Text>
-            <TouchableOpacity
-              style={styles.newGameButton}
-              onPress={handleBackToList}
-              accessibilityLabel="Return to saved games list"
-              accessibilityRole="button"
-            >
-              <Text style={styles.newGameButtonLabel}>New Game</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Player score rows */}
-          {activeSession.players.map(player => (
-            <View key={player.playerId} style={styles.playerCard}>
-              <Text
-                style={styles.playerCardName}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {player.name}
-              </Text>
-              <Text style={styles.playerCardScore}>
-                {activeSession.scores[player.playerId]}
-              </Text>
-            </View>
-          ))}
-
-          {/* Session metadata */}
-          <Text style={styles.sessionInfo}>
-            Session started {formatTimestamp(activeSession.createdAt)}
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+    <ScoreBoard
+      activeSession={activeSession}
+      onScoreChange={handleScoreChange}
+      onBack={handleBackToList}
+    />
   );
 };
 
