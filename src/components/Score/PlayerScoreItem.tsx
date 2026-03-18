@@ -6,7 +6,7 @@
  * the 48×48 dp minimum touch target requirement (NFR-A-001).
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, memo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
 import { Player } from '../../types';
@@ -92,4 +92,10 @@ const PlayerScoreItem: React.FC<PlayerScoreItemProps> = ({
   );
 };
 
-export default PlayerScoreItem;
+/**
+ * PlayerScoreItem is memoized so that score changes for one player do not
+ * re-render sibling rows in the ScoreBoard. Since scores are stored in a
+ * flat object, only the row whose `score` prop actually changed will re-render.
+ * NFR-P-003: score updates reflected within 16 ms.
+ */
+export default memo(PlayerScoreItem);

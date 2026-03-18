@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { Animated, Easing, View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../styles/colors';
 import { SPACING, BORDER_RADIUS, FONT_SIZE, FONT_WEIGHT } from '../../styles/theme';
@@ -140,4 +140,9 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DiceAnimation;
+/**
+ * DiceAnimation is memoized so parent re-renders (e.g. score state changes)
+ * do not re-render or re-trigger the animation unless props actually change.
+ * NFR-P-001: 60 FPS animation target.
+ */
+export default memo(DiceAnimation);

@@ -10,7 +10,7 @@
  *  - `onNewGame` — called when the "New Game" button is tapped.
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -200,4 +200,8 @@ const GameSessionList: React.FC<GameSessionListProps> = ({
   );
 };
 
-export default GameSessionList;
+/**
+ * GameSessionList is memoized to prevent unnecessary re-renders when the
+ * parent ScoreScreen updates state unrelated to this view. NFR-P-005.
+ */
+export default memo(GameSessionList);
