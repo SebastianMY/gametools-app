@@ -1,4 +1,4 @@
-# Game Companion Mobile Application — Architecture Document (FINAL APPROVED)
+# Game Companion Mobile Application — Architecture Document (Final Approved)
 
 ## 1. Architecture Overview
 
@@ -250,344 +250,368 @@ The application is fundamentally **offline-first**: all data is stored locally o
 
 ---
 
-### ADR-011: Touch Stability Tolerance — Allow 5–10mm Position Drift
+### ADR-011: Touch Stability Tolerance Threshold (Requirement FR-T-004)
 
-**Decision:** Allow 5–10mm position drift while detecting touch stability; use a threshold-based check on touch position history rather than requiring exact pixel-perfect stillness.
+**Decision:** Allow 5–10mm position drift when detecting touch stability; use a threshold-based check rather than requiring exact pixel-perfect stillness.
 
 **Context:**
 - Requirement FR-T-004 specifies "touch stability for 3 seconds" but does not define tolerance for natural hand tremor or micro-movement.
-- Expecting exact position locking creates poor UX; players struggle to keep fingers completely stationary.
-- A 5–10mm tolerance matches typical gaming input standards and is imperceptible to human touch while remaining tight enough to prevent accidental jitter.
+- Expecting exact stillness creates poor UX; players struggle to maintain perfectly stationary fingers for 3 seconds.
+- A 5–10mm tolerance matches typical gaming input standards and is imperceptible to the human eye while remaining tight enough to prevent accidental jitter.
+- The Draw feature's purpose is fair random winner selection; minor hand motion does not affect fairness.
 
 **Alternatives Considered:**
-1. **Exact position locking (zero drift):** Frustrating UX; typical human hand tremor exceeds 2–3mm.
-2. **No stability check, immediate random selection:** Would violate FR-T-004; removes intended fairness mechanism.
-3. **Large tolerance (>15mm):** Risks detecting unintended hand movements as stable.
+1. **Exact position locking (zero tolerance):** Frustrating for users; unachievable in practice due to natural hand tremor.
+2. **Large tolerance (>20mm):** May permit intentional movement; reduces reliability of "stability" detection.
+3. **Adaptive tolerance based on device DPI:** Over-complicated for v1.0.
 
 **Trade-offs:**
-- **Accepted:** Small amount of hand motion is tolerated, which could theoretically be perceived as "cheating"; however, the app selects a random touch after stability, not based on position, so this does not affect fairness.
-- **Implementation:** Requires tracking position history and computing standard deviation or distance-from-mean to detect stability; adds ~20 lines of code.
-- **Benefit:** Natural, comfortable UX for players holding fingers steady.
+- **Accepted:** A small amount of hand motion is tolerated, which could theoretically permit players to deliberately drift; however, the app selects a random winner regardless of final position, so movement does not affect the outcome.
+- **Implementation:** Requires tracking position history and computing standard deviation or distance-from-mean to detect stability (~20 lines of code).
+- **Benefit:** Natural, non-frustrating UX; fair randomness maintained.
 
 **Status:** Accepted
 
 ---
 
-### ADR-012: Undo/Redo Not Implemented in v1.0; Deferred to v1.1
+### ADR-012: Undo/Redo Not Implemented in v1.0
 
-**Decision:** Do not implement undo/redo functionality in v1.0. Deferred to v1.1 or later if user feedback justifies the added complexity.
+**Decision:** The "Undo Last Change" feature mentioned in Requirement AF-003-B is not implemented for v1.0. Users cannot undo accidental score changes; they must delete the session and start over or manually adjust scores.
 
 **Context:**
-- Requirement AF-003-B lists "Undo Last Change" as an alternative flow, but the spec does not mandate undo as a primary functional requirement.
-- Section 8.6 (Out of Scope) does not explicitly exclude undo, but emphasis on simplicity and minimal cognitive load (NFR-U-004) suggests post-hoc data recovery is not essential for the MVP.
-- Storing undo history requires additional storage, increased complexity in Score service, and UI state management.
-- The app already provides session deletion, which allows users to abandon a game and start over.
+- Requirement AF-003-B lists "Undo Last Change" as an *alternative flow*, not a mandatory functional requirement.
+- Section 8.6 (Out of Scope) does not explicitly exclude undo, but the emphasis on simplicity and minimal cognitive load (NFR-U-004) suggests post-hoc data recovery is not essential for the MVP.
+- Storing undo history requires additional storage, increased complexity in ScoreService, and additional UI state management.
+- The app already provides session deletion, allowing users to restart; this is an acceptable workaround for v1.0.
 
 **Alternatives Considered:**
-1. **Implement undo with stack of recent changes:** More robust for user error recovery; adds state management complexity.
-2. **Single-level undo (last action only):** Simpler; still requires change history tracking.
+1. **Implement full undo/redo stack:** Adds complexity and storage overhead; not prioritized for MVP.
+2. **Provide "revert to last save" option:** Unnecessary given session deletion option.
 
 **Trade-offs:**
-- **Accepted:** Users cannot undo an accidental score change; they must delete the session and start fresh if a mistake is made.
-- **Benefit:** Simpler Score feature code, no undo state to manage, faster v1.0 release.
-- **Path Forward:** Undo can be added to v1.1 with an in-session stack of recent score modifications, storing the last 20 changes.
+- **Accepted:** Users cannot undo accidental score changes; they must delete the session and start over.
+- **Benefit:** Simpler Score feature implementation, reduced state management complexity, smaller bundle.
+- **Future:** Undo can be added to v1.1 with a stack of recent score modifications stored in-memory during a session (cleared when session is closed).
 
 **Status:** Accepted
 
 ---
 
-### ADR-013: Undo History Depth (Deferred, Not Applicable to v1.0)
+### ADR-013: Undo History Depth Deferred to v1.1
 
-**Decision:** Not applicable to v1.0. If undo is implemented in v1.1, the history depth shall be limited to the current session only, storing the last 20 score changes in a LIFO stack. History is cleared when the session is closed.
-
-**Context:**
-- Depends on ADR-012; if undo is deferred, this decision is also deferred.
-- If future undo implementation occurs, depth constraints prevent unbounded memory growth on 2GB RAM devices.
-- Storing only the current session's history (not persisted post-session) keeps the feature lightweight.
-
-**Alternatives Considered:**
-1. **Unlimited history:** Risk of memory overflow on long sessions.
-2. **Per-session persistent history:** Adds storage complexity; unclear if users want historical undo across sessions.
-3. **Global redo capability:** Exceeds scope; deferred to future versions.
-
-**Trade-offs:**
-- N/A for v1.0.
-
-**Status:** Accepted (Deferred)
-
----
-
-### ADR-014: No Cross-Device Synchronization; Single-Device, Offline-Only
-
-**Decision:** The application remains single-device and offline-only. No cross-device synchronization, cloud backup, or backend API is implemented in v1.0 or future versions unless explicitly mandated by a new specification.
+**Decision:** Undo history depth is not applicable to v1.0 (see ADR-012). If undo is implemented in v1.1, the history depth shall be limited to the current session only, storing the last 20 score changes in a stack.
 
 **Context:**
-- Requirement NFR-O-001 and NFR-O-002 are absolute: "100% offline functionality" and "shall not attempt to establish network connections."
-- ADR-009 confirms no backend API.
-- Assumption A-007 explicitly accepts "no cloud backup or recovery if the device is reset or lost."
-- Adding a backend for cloud sync would violate non-negotiable offline-first constraints and introduce operational complexity.
+- Depends on ADR-012; undo is not implemented in v1.0.
+- If v1.1 implements undo, a bounded stack is preferable to unbounded history to manage memory on 2GB RAM devices.
+- Limiting history to the current session (cleared when the session is closed) balances usability with memory constraints.
 
 **Alternatives Considered:**
-1. **Optional cloud sync:** Would violate NFR-O-001 and add infrastructure burden.
-2. **Peer-to-peer sync via Bluetooth:** Interesting but out of scope; adds complexity and dependency on BLE capabilities.
-3. **Cross-device file export/import:** Possible future feature; deferred to v1.1 and would be manual (not automatic sync).
+1. **Unbounded undo history:** Consumes memory; increases storage requirements.
+2. **Persistent undo history across sessions:** Violates simplicity goal; adds significant complexity.
+3. **No undo in v1.1:** Acceptable but limits feature completeness based on user feedback.
 
 **Trade-offs:**
-- **Accepted:** Users cannot access game sessions across devices; data is trapped on a single device.
-- **Accepted:** No automatic backup; users must manually export sessions to preserve data.
-- **Benefit:** Simplicity, no infrastructure cost, absolute offline reliability, strong privacy (data never leaves device).
+- N/A for v1.0; deferred decision.
 
 **Status:** Accepted
 
 ---
 
-### ADR-015: Player Name Constraints — 1–20 Characters, Alphanumeric + Spaces/Hyphens
+### ADR-014: No Cross-Device Synchronization; Single-Device Only
 
-**Decision:** Enforce a strict 1–20 character limit for player names. Allow only alphanumeric characters (a-z, A-Z, 0-9), spaces, and hyphens. Reject names with emojis, special characters (#, @, &, etc.), or Unicode scripts beyond Latin.
+**Decision:** The application remains single-device and offline-only. No cross-device synchronization, cloud backup, or backend synchronization is implemented in v1.0 or mandated for future versions (unless a new spec explicitly requires it).
 
 **Context:**
-- Section 4.2 specifies "up to 20 characters per name."
-- Strict character whitelisting prevents rendering issues (emoji width variability, unsupported Unicode scripts), simplifies storage, and reduces security risks (injection).
-- Spaces and hyphens are common in names (e.g., "Alice-Bob", "John Smith") and are safe.
-- The 1-character minimum enforces non-empty names.
+- Requirement NFR-O-001 mandates "100% offline functionality with no internet connection required."
+- Requirement NFR-O-002 explicitly states the app "shall not attempt to establish network connections."
+- Assumption A-007 explicitly accepts data loss if the device is reset: "no cloud backup or recovery if the device is reset or lost."
+- Adding a backend for cloud sync would violate the offline-first principle and introduce operational complexity (server infrastructure, authentication, data privacy).
+- The spec contains no requirements for cross-device functionality.
 
 **Alternatives Considered:**
-1. **Allow all Unicode:** Supports international names (e.g., Chinese, Arabic) but risks rendering inconsistencies and storage complexity; deferred to v1.1 i18n.
-2. **Allow special characters (#, @, $):** Simplifies validation; risks injection attacks or unexpected rendering behavior.
-3. **No length limit:** Allows very long names that break UI layout; requires dynamic text sizing.
+1. **Optional cloud sync with user opt-in:** Violates NFR-O-001 (100% offline requirement) and adds networking complexity.
+2. **Backend API layer for analytics/telemetry:** Explicitly out of scope (Section 8.6); would violate offline-first principle.
 
 **Trade-offs:**
-- **Accepted:** Players with non-Latin names (Chinese, Arabic, Cyrillic, etc.) cannot use their native scripts in v1.0. Localization limitation; mitigated in v1.1.
-- **Accepted:** Hyphens and spaces reduce the maximum effective length (e.g., "Mary-Jane Watson" = 16 characters).
-- **Benefit:** Predictable rendering, simple validation, reduced security surface.
+- **Accepted:** Users cannot access game sessions across devices; data is trapped on a single device. Acceptable per Assumption A-007 and the offline-first design principle.
+- **Benefit:** No backend infrastructure to maintain, no privacy/data handling concerns, 100% offline reliability.
+- **Future:** If a new spec requires multi-device support, a separate backend service can be designed without refactoring the client architecture, which is already network-agnostic.
 
 **Status:** Accepted
 
 ---
 
-### ADR-016: Draw Feature Touch Color Cycling Beyond 8 Touches
+### ADR-015: Player Name Validation Rules
 
-**Decision:** Cycle through the 8-color palette when more than 8 simultaneous touches are detected. The 9th touch reuses the color of the 1st touch, the 10th reuses the 2nd, etc. (color = palette[touchIndex % 8]).
+**Decision:** Enforce strict validation for player names: allow only 1–20 alphanumeric characters (a-z, A-Z, 0-9), spaces, and hyphens. Reject names containing emojis, special characters (#, @, !, etc.), or non-Latin Unicode scripts.
+
+**Context:**
+- Requirement FR-S-002 specifies "input names for participating players" but does not formally define constraints.
+- Section 4.2 mentions "up to 20 characters per name."
+- Strict character whitelisting prevents rendering issues (emoji width variability, unsupported scripts) and simplifies storage/debugging.
+- Spaces and hyphens are common in real names (e.g., "Alice-Bob", "John Smith") and are safe to permit.
+- The 1-character minimum enforces non-empty names; empty names cause display confusion.
+
+**Alternatives Considered:**
+1. **Permissive Unicode support:** Allows any Unicode character; complicates rendering (variable-width emojis, right-to-left scripts) and increases storage unpredictability.
+2. **Only alphanumeric (no spaces/hyphens):** Reduces realism for multi-word names.
+3. **No validation (accept any string):** Risks display bugs and storage issues with malformed data.
+
+**Trade-offs:**
+- **Accepted:** Players with non-Latin names (Chinese, Arabic, Cyrillic) cannot use their native scripts in v1.0. This is a localization limitation deferred to v1.1 (see ADR-022).
+- **Accepted:** Maximum effective name length is reduced if spaces/hyphens are used (e.g., "Mary-Jane Watson" is 16 characters, leaving 4 for surname).
+- **Benefit:** Consistent rendering across all devices, simpler debugging, no character encoding issues.
+- **Implementation:** Simple regex validation: `/^[a-zA-Z0-9 \-]{1,20}$/`
+
+**Status:** Accepted
+
+---
+
+### ADR-016: Draw Feature Multi-Touch Color Cycling Beyond 8 Touches
+
+**Decision:** Cycle through the 8-color palette when more than 8 touches are detected. The 9th touch reuses the color of the 1st touch; the 10th reuses the 2nd color, etc. (color = palette[touchIndex % 8]).
 
 **Context:**
 - Requirement FR-T-001 mandates support for "up to 10 simultaneous touch points."
-- The spec provides 8 predefined colors (Section 10.2) but does not address >8 touches.
-- Cycling through the palette is the simplest implementation (single modulo operation).
+- Requirement Section 10.2 provides exactly 8 predefined colors for multi-touch circles.
+- The spec does not specify behavior for >8 touches.
+- Requirement FR-T-003 specifies "random winner selection"; the winner is selected randomly, not by color uniqueness.
 
 **Alternatives Considered:**
-1. **Reject touches >8:** Violates 10-player support requirement (FR-T-001).
-2. **Generate new colors dynamically:** Risks palette incoherence and visual confusion.
-3. **Reuse colors randomly:** Unpredictable; harder to debug.
+1. **Reject touches >8:** Would frustrate users in 10-player scenarios; violates the intent of FR-T-001.
+2. **Generate new colors dynamically:** Risks palette incoherence (unpredictable colors); complicates code.
+3. **Reuse colors sequentially (current choice):** Simplest implementation; acceptable trade-off.
 
 **Trade-offs:**
-- **Accepted:** Color uniqueness is lost beyond 8 touches; two different touch points may share the same color. This makes visual distinction harder in crowded 9–10 player games.
-- **Benefit:** Simple implementation, supports full 10-touch requirement, predictable behavior.
-- **Note:** The random winner selection is independent of color and position, so color sharing does not affect fairness.
+- **Accepted:** Color uniqueness is lost beyond 8 simultaneous touches. Two different touch points may share the same color, potentially making it harder to visually distinguish them in crowded 9–10 player games.
+- **Benefit:** Simple implementation (single modulo operation); all touches remain visually represented; fair winner selection (random, not color-dependent).
+- **Mitigation:** Random winner selection is independent of color and position, so color overlap does not affect fairness. In typical board game sessions (2–6 players), this is not a practical issue.
 
 **Status:** Accepted
 
 ---
 
-### ADR-017: Multi-Touch Handler Primary/Fallback Selection Strategy
+### ADR-017: PanResponder Multi-Touch Fallback Strategy
 
-**Decision:** Use React Native's PanResponder as the primary multi-touch handler for v1.0. If testing reveals unreliable behavior with >6 simultaneous touches on target devices, migrate to `react-native-gesture-handler` during the QA phase.
+**Decision:** Use React Native's PanResponder as the primary multi-touch handler in v1.0. If testing reveals unreliable behavior with >6 simultaneous touches on target devices, migrate to `react-native-gesture-handler` during the QA phase before release.
 
 **Context:**
-- Requirement FR-T-001 mandates support for up to 10 touches; typical gaming scenarios involve 2–6 players.
-- PanResponder is built-in (no external dependency), aligning with ADR-005's preference for simplicity.
-- GestureHandler is a proven alternative with proven multi-touch reliability; API is similar enough for straightforward migration.
+- Requirement FR-T-001 mandates support for up to 10 touches.
+- PanResponder is built-in (no external dependency, aligns with ADR-005) and is adequate for typical use cases (2–6 players per Assumption A-010).
+- Reanimated 2's GestureHandler is a proven alternative for advanced multi-touch scenarios.
+- Deferring the decision to QA/testing avoids premature optimization and respects "Simplicity First."
 
 **Alternatives Considered:**
-1. **Preemptively adopt GestureHandler:** Adds external dependency and native code complexity; unnecessary without evidence of PanResponder failure.
-2. **Ignore multi-touch testing:** Risk of discovering critical failures late in development.
+1. **Start with GestureHandler in v1.0:** Adds dependency and complexity; may be unnecessary.
+2. **Use only PanResponder, no fallback:** Risks missing out on 9–10 player scenarios if PanResponder fails.
+3. **Hybrid approach (test during development):** Current choice; pragmatic.
 
 **Trade-offs:**
-- **Accepted:** Defers the handler decision, adding testing risk. If PanResponder fails, touch handling code must be rewritten mid-development.
-- **Benefit:** Simpler v1.0 with fewer dependencies; straightforward migration path if needed.
-- **Timeline:** Multi-touch testing should be prioritized early (Week 2–3 of development) to allow time for migration if necessary.
+- **Accepted:** The migration decision is deferred, adding testing risk. If PanResponder fails at >6–7 touches, the team must rewrite touch handling code during QA.
+- **Mitigation:** Straightforward API similarity between PanResponder and GestureHandler allows quick migration. Early multi-touch testing during development reduces QA surprises.
+- **Benefit:** Minimal dependencies and complexity in v1.0 codebase.
 
 **Status:** Accepted
 
 ---
 
-### ADR-018: AsyncStorage Cleanup Mechanism — 60-Day Auto-Delete
+### ADR-018: AsyncStorage Performance Management and Cleanup
 
-**Decision:** Implement automatic cleanup on app startup: delete game sessions older than 60 days. Additionally, monitor AsyncStorage enumeration time during testing; if listing >100 sessions takes >500ms, implement session archiving or migrate to SQLite post-v1.0.
+**Decision:** Implement automatic cleanup of game sessions older than 60 days on app startup. Monitor AsyncStorage enumeration performance during testing; if listing >100 sessions takes >500ms, implement session archiving or migrate to SQLite post-v1.0.
 
 **Context:**
-- Assumption A-006 estimates <50 sessions per device, but power users could accumulate 200+ sessions in 1–2 years.
-- AsyncStorage enumeration is O(n) with no built-in indexing; large session counts can slow app startup.
-- The 60-day cutoff balances retaining relevant recent games while preventing storage bloat.
-- Migration to SQLite is straightforward if needed (see ADR-002).
+- Assumption A-006 estimates <50 sessions per device, but power users could accumulate 200+ sessions over 1–2 years.
+- AsyncStorage is a key-value store with no built-in indexing; enumerating all keys is O(n) and can slow app startup.
+- Requirement NFR-P-003 specifies <500ms startup time; large session enumeration violates this.
+- The 60-day retention window is reasonable: retains recent games (likely still relevant) while preventing storage bloat.
+- Requirement NFR-R-004 specifies "independent storage without interference"; cleanup does not affect active sessions.
 
 **Alternatives Considered:**
-1. **Unlimited session storage:** Risk of performance degradation; no cleanup overhead.
-2. **User-controlled retention period:** More flexible; adds settings UI complexity.
-3. **Immediate SQLite migration:** Premature optimization; AsyncStorage is adequate for 50–100 sessions.
+1. **No cleanup; grow unbounded:** Risks performance degradation and storage bloat over time.
+2. **Manual cleanup by user:** Adds UI complexity; most users will not manually clean old data.
+3. **SQLite from v1.0:** Over-engineered for estimated scale; adds complexity unnecessarily.
+4. **Archiving to separate storage:** Deferred to v1.1 if needed.
 
 **Trade-offs:**
-- **Accepted:** Users' old game sessions are automatically deleted without warning, removing historical records. Acceptable for simplicity; users can manually export important sessions in v1.1.
-- **Implementation:** ~30 lines of code in StorageService startup logic; minimal performance impact.
-- **Future Enhancement:** A settings option in v1.1 could allow customizing the retention period (30–90 days).
+- **Accepted:** Users' old game sessions are automatically deleted after 60 days without warning or confirmation. This removes historical records but prevents storage bloat.
+- **Mitigation:** Users can manually export or screenshot important sessions (deferred to v1.1). A user preference to customize retention period (30–90 days) can be added in v1.1.
+- **Benefit:** Predictable storage footprint, stable app startup performance, reduced AsyncStorage overhead.
+- **Monitoring:** During QA, measure enumeration performance with 50, 100, and 200 sessions to establish baseline; migrate to SQLite if >500ms observed.
 
 **Status:** Accepted
 
 ---
 
-### ADR-019: Animation Frame Rate Degradation — Target 60 FPS, Accept 30 FPS Fallback
+### ADR-019: Animation Frame Rate Graceful Degradation
 
-**Decision:** Target 60 FPS animations on all devices as per NFR-P-001. If testing reveals 60 FPS is unachievable on minimum-spec devices (2GB RAM, Android 8.0), reduce animation complexity: shorten duration from 1s to 500ms, reduce particle count, and accept graceful degradation to 30 FPS rather than removing the feature.
+**Decision:** Target 60 FPS on all devices per Requirement NFR-P-001. If testing reveals 60 FPS is unachievable on minimum-spec devices (2GB RAM, Android 8.0), reduce animation complexity: shorten dice roll duration from 1s to 500ms, reduce simultaneous animations, and accept graceful degradation to 30 FPS rather than dropping the animation feature.
 
 **Context:**
 - Requirement NFR-P-001 mandates "60 FPS animations on devices with 2GB RAM minimum."
-- Older Android devices with 2GB RAM and system bloat may not sustain 60 FPS.
-- React Native's Animated API is optimized for 60 FPS but depends on platform performance.
-- Testing on actual target devices (not emulators) will reveal baseline performance.
+- React Native's Animated API is optimized for 60 FPS but is subject to platform performance constraints.
+- Older Android devices with 2GB RAM and system bloatware may not consistently sustain 60 FPS.
+- Testing on actual target devices (not emulators) is the only reliable way to establish the true baseline.
+- Reducing animation complexity (duration, particle count, simultaneous animations) is a proven technique to improve frame rates without removing functionality.
+- 30 FPS is still smooth enough for human perception (cinema standard is 24 FPS).
 
 **Alternatives Considered:**
-1. **Strict 60 FPS requirement, disable animations on slower devices:** Harms UX; removes visual appeal for budget-conscious users.
-2. **Optimize to unnecessary extremes:** Premature optimization; test first, optimize only if needed.
+1. **Strict 60 FPS requirement; fail on low-end devices:** Unachievable on some devices; poor UX.
+2. **Remove animations entirely:** Violates Requirement FR-D-002 (dice animation) and NFR-U-002 (visual feedback).
+3. **Graceful degradation (current choice):** Pragmatic; maintains functionality across device tiers.
 
 **Trade-offs:**
-- **Accepted:** Animations may appear less smooth on low-end devices; dice rolls may feel "snappier" (500ms vs 1s) rather than dramatic.
-- **Benefit:** Animations remain present and functional on all devices; 30 FPS is still smooth enough for human perception.
-- **Testing Strategy:** Prioritize real device testing in Week 4–5 of development; establish performance baseline early.
+- **Accepted:** Animations may appear less smooth on low-end devices. Dice rolls may feel "snappier" (shorter 500ms duration) rather than dramatic (1s).
+- **Benefit:** Consistent functionality across all target devices; users on budget phones still get animations, just shorter/snappier.
+- **Implementation:** Detect device performance during early animation render; use `LayoutAnimation.configureNext()` or frame rate detection to adjust duration.
 
 **Status:** Accepted
 
 ---
 
-### ADR-020: Haptic Feedback Graceful Degradation — Rely on Expo Haptics Fallback
+### ADR-020: Haptic Feedback Graceful Fallback
 
-**Decision:** Rely on Expo Haptics' built-in fallback behavior; the `triggerNotification()` call is silently no-op on devices without vibration hardware or if the user has disabled vibration in OS settings. No app-level error handling or fallback UI is required.
+**Decision:** Rely on Expo Haptics' built-in graceful fallback behavior. The `triggerNotification()` call is silently no-op on devices without vibration hardware or if the user has disabled vibration in OS settings. No app-level error handling is required. Complement haptic feedback with visual feedback (e.g., text animation) to ensure the 3-second touch stability event is perceivable without vibration.
 
 **Context:**
+- Requirement FR-T-005 specifies "haptic feedback (vibration)" after 3 seconds of touch stability.
 - Requirement A-009 explicitly states "Haptic feedback (vibration) is available on all target devices; graceful degradation occurs if unavailable."
-- Expo's Haptics module abstracts platform differences (iOS CoreHaptics, Android Vibrator) and handles fallback automatically.
-- iOS devices with Haptic Engine and modern Android devices support vibration; older devices or accessibility settings will silently skip feedback.
+- Expo's Haptics module abstracts platform differences and handles fallback automatically. iOS devices with Haptic Engine and modern Android devices with Vibrator support will provide feedback; older devices will silently skip feedback.
+- This is the idiomatic approach in React Native; no custom code is required.
 
 **Alternatives Considered:**
-1. **Custom fallback (e.g., flash screen on no vibration):** Over-engineered; Expo's built-in handling is sufficient.
-2. **Emit errors on unsupported devices:** Violates A-009's graceful degradation expectation.
+1. **Custom platform detection and error handling:** Unnecessary; Expo Haptics handles this.
+2. **Strict vibration requirement; fail on unsupported devices:** Violates Assumption A-009.
+3. **Haptics-only feedback, no visual alternative:** Leaves unsupported devices without perceivable event notification.
 
 **Trade-offs:**
-- **Accepted:** Users on unsupported devices receive no haptic feedback for the 3-second stability completion event.
-- **Mitigation:** Provide visual feedback (e.g., "Ready!" text change or animation) in parallel with haptics, ensuring the event is perceivable without vibration.
-- **Benefit:** No additional code required; Expo handles platform differences.
+- **Accepted:** Users on unsupported devices will not receive haptic feedback for the 3-second stability completion event.
+- **Mitigation:** Provide visual feedback (e.g., "Ready!" text appears, circle glows, animation plays) in parallel with haptics. Ensures the event is perceivable even without vibration.
+- **Benefit:** Single API call; no configuration; handles cross-platform compatibility automatically.
 
 **Status:** Accepted
 
 ---
 
-### ADR-021: Accessibility — Screen Reader Annotations for Critical Elements
+### ADR-021: Screen Reader Accessibility Annotations
 
-**Decision:** Annotate all interactive elements with `accessibilityLabel` and `accessibilityHint` properties. Prioritize annotations in this order: (1) Roll Dice button, (2) Score +/− buttons, (3) New Game button, (4) Delete Session button, (5) Draw Canvas touch area. Secondary UI elements (headers, status text) are labeled but may be lower priority for extensive testing.
+**Decision:** Annotate all interactive elements with `accessibilityLabel` and `accessibilityHint` properties for VoiceOver (iOS) and TalkBack (Android) support. Prioritize these elements in order: (1) Roll Dice button, (2) Score +/− buttons, (3) New Game button, (4) Delete Session button, (5) Draw Canvas touch area. Secondary elements (player name inputs, tab labels) are labeled but may be lower priority.
 
 **Context:**
 - Requirement NFR-A-005 specifies support for VoiceOver (iOS) and TalkBack (Android) on "critical interface elements."
-- Critical elements are those directly affecting game logic and user actions.
-- Labels must be concise and action-oriented (e.g., "Roll dice button, activates dice roll animation").
+- Critical elements are those that directly affect game logic and user actions.
+- Labels must be concise and action-oriented (e.g., "Roll dice button, activates dice roll animation" rather than generic "button").
+- Full accessibility testing and refinement is deferred to v1.1 or accessibility audit post-launch.
 
 **Alternatives Considered:**
-1. **No accessibility annotations:** Violates NFR-A-005.
-2. **Comprehensive annotations for all UI elements:** Higher priority; appropriate for v1.0 to ensure inclusivity.
+1. **No accessibility support:** Violates NFR-A-005 and accessibility standards.
+2. **Full accessibility implementation with testing:** Deferred to v1.1 or post-launch audit; too time-consuming for MVP.
+3. **Current approach (prioritized annotations):** Pragmatic; covers critical paths while deferring comprehensive support.
 
 **Trade-offs:**
-- **Accepted:** Secondary UI elements may have inconsistent screen reader behavior if not tested extensively.
-- **Enhancement:** Comprehensive accessibility testing and refinement for all elements can occur in v1.1.
-- **Benefit:** Ensures critical gameplay is accessible to visually impaired users.
+- **Accepted:** Secondary UI elements (headers, informational text) are labeled but not extensively tested. Users may experience inconsistent screen reader behavior for non-critical elements.
+- **Benefit:** Critical user paths (rolling dice, modifying scores, creating games) are accessible; improves inclusivity without overwhelming development effort.
+- **Future:** Comprehensive accessibility audit and refinement in v1.1.
 
 **Status:** Accepted
 
 ---
 
-### ADR-022: English-Only Localization for v1.0; i18n Deferred to v1.1
+### ADR-022: English-Only Localization for v1.0
 
-**Decision:** Implement all UI strings in English only for v1.0. Internationalization (i18n) support is deferred to v1.1 or later.
+**Decision:** The application is English-only for v1.0. All UI strings (button labels, error messages, feedback text) are hardcoded in English. Internationalization (i18n) and multi-language support are deferred to v1.1 or later.
 
 **Context:**
-- The specification is in English; primary audience is English-speaking users.
-- Implementing i18n requires tooling (i18next, react-i18next), translation management, and testing for each supported language.
-- Adds complexity and bundle size without addressing MVP scope.
+- The specification is in English, and the primary audience is English-speaking users.
+- Implementing i18n requires additional tooling (e.g., i18next, react-i18next), translation management infrastructure, and testing for each supported language.
+- i18n adds complexity, increases bundle size, and complicates maintenance without addressing the MVP scope.
+- Deferring i18n to v1.1 aligns with "Simplicity First" and allows prioritizing core gameplay stability in v1.0.
 
 **Alternatives Considered:**
-1. **Implement i18n in v1.0:** Provides immediate multilingual support; adds development overhead.
-2. **Plan i18n architecture for future:** Risk of architectural changes if i18n is bolted on later; mitigated by using simple string constants (not hardcoded strings) from the start.
+1. **Add i18n support in v1.0:** Adds ~5–10KB to bundle; requires translation workflows and testing. Unnecessary for MVP.
+2. **Hardcoded English (current choice):** Simplest; adequate for MVP launch.
+3. **User-selectable language with single alternative (e.g., Spanish):** Adds maintenance burden without broad applicability.
 
 **Trade-offs:**
-- **Accepted:** Non-English speakers cannot use the app in their preferred language.
-- **Future:** If the app is released in markets with non-English speakers, i18n becomes urgent and should be prioritized in v1.1.
-- **Implementation Tip:** Structure strings as constants in `src/strings/en.ts` (not hardcoded inline) to simplify future i18n migration.
+- **Accepted:** Non-English speakers cannot use the app in their preferred language. Users with devices set to non-English locales will see English UI.
+- **Mitigation:** If the app is released in markets with non-English speakers, i18n becomes urgent and should be prioritized in v1.0.1 or v1.1.
+- **Benefit:** Minimal dependencies, simpler codebase, faster development.
 
 **Status:** Accepted
 
 ---
 
-### ADR-023: Static Light Theme Only; Dark Mode Deferred to v1.1
+### ADR-023: Static Light Theme; No Dark Mode in v1.0
 
-**Decision:** Implement a fixed light color palette for v1.0 with no dark mode variant. Dark mode support is deferred to v1.1.
+**Decision:** The application uses a fixed, light color theme for v1.0. No dark mode variant, system theme detection, or theme customization is implemented. Dark mode support is deferred to v1.1.
 
 **Context:**
-- Implementing dark mode requires defining a second color palette, detecting system theme preference, managing theme state, and testing on iOS and Android.
-- Doubles visual design work; complicates the styling layer.
-- Light theme is suitable for table-top gaming scenarios (typically well-lit environments or focused screen time).
-- ADR-010 already commits to a static design system; dark mode is orthogonal to v1.0 scope.
+- Implementing dark mode requires defining a second color palette, detecting system theme preference (using `useColorScheme()` hook in React Native), managing theme state, and testing across light/dark modes on both iOS and Android.
+- Dark mode effectively doubles the visual design and testing workload.
+- The light theme is suitable for table-top gaming scenarios (typically in well-lit environments or with focused screen time).
+- Requirement NFR-U-002 emphasizes visual metaphors and "game table aesthetic"; a light palette aligns with this metaphor.
+- Accessibility benefit (reduced eye strain) is real but can be achieved with high contrast and careful color choices in the light theme.
+- Custom theme support is explicitly out of scope (Section 8.6; ADR-010 confirms static design system).
 
 **Alternatives Considered:**
-1. **Implement dark mode in v1.0:** Improves accessibility (reduced eye strain for low-light use); adds development overhead.
-2. **Detect system dark mode preference and apply auto-theme:** Useful but deferred; UI design for both themes requires upfront work.
+1. **Light and dark mode from v1.0:** Doubles visual design and testing effort; not justified for MVP.
+2. **Light theme only (current choice):** Simplest; adequate for MVP.
+3. **User toggle with single alternative (e.g., high-contrast mode):** Adds state management complexity; deferred to v1.1 if accessibility feedback demands it.
 
 **Trade-offs:**
-- **Accepted:** Users who prefer dark mode for accessibility (e.g., astigmatism, low-light use) cannot enable it in v1.0.
-- **Mitigation:** Ensure sufficient color contrast in light palette (per NFR-A-006 WCAG AA standards) to support low-vision users.
-- **Path Forward:** If accessibility feedback indicates dark mode is essential, prioritize in v1.0.1 patch or v1.1.
+- **Accepted:** Users who prefer dark mode for accessibility (reduced eye strain, astigmatism) cannot enable it in v1.0.
+- **Mitigation:** Ensure high contrast and sufficient color separation in the light palette per WCAG AA standards (Requirement NFR-A-006). If accessibility feedback indicates dark mode is essential, prioritize in v1.0.1 patch or v1.1.
+- **Benefit:** Simpler styling code, faster development, no theme state management complexity.
 
 **Status:** Accepted
 
 ---
 
-### ADR-024: No Analytics or Crash Reporting; Offline-First Constraint
+### ADR-024: No Analytics or Crash Reporting
 
-**Decision:** Do not integrate analytics, crash reporting, or telemetry tools that require internet connectivity in v1.0. Use only local console logging (`console.log`, `console.error`) for debugging during development. Sentry, Firebase Crashlytics, Amplitude, or similar services are explicitly out of scope.
+**Decision:** The application does not use analytics, crash reporting, or telemetry tools that require internet connectivity in v1.0. Only local console logging (`console.log`, `console.error`) is available for debugging during development. Sentry, Firebase Crashlytics, Braze, or similar services are explicitly excluded.
 
 **Context:**
-- Requirement NFR-O-002 is absolute: "the app shall not attempt to establish network connections."
-- Any analytics or crash reporting service inherently requires network access to send data to a remote server, violating this constraint.
-- Offline-first design is a core feature (Assumption A-007); no exceptions.
-- Crash reporting can be deferred to v1.1 if a backend is added, but only if it respects offline-first constraints.
+- Requirement NFR-O-002 is absolute and non-negotiable: "the app shall not attempt to establish network connections."
+- Any analytics or crash reporting service inherently requires network access to send data to a remote server, violating this fundamental constraint.
+- The offline-first design is a core feature and architectural principle (ADR-009, Assumption A-007).
+- Crash reporting can be deferred to v1.1 if a backend is added in the future, but only if it respects offline-first constraints (queue crashes locally, send only with explicit user consent and active connectivity).
 
 **Alternatives Considered:**
-1. **Local crash logging (no network):** Possible but requires users to manually retrieve logs; limited utility.
-2. **Optional telemetry with explicit user consent:** Could work if framed as opt-in and respects offline constraint (queue data, send only with permission and connectivity); deferred to v1.1.
+1. **Optional analytics with user opt-in:** Still violates NFR-O-002 (absolute offline requirement); adds network layer complexity.
+2. **Local crash logging to AsyncStorage:** Possible but adds storage overhead; limited utility without data analysis infrastructure.
+3. **No reporting (current choice):** Aligns with offline-first principle; simplest implementation.
 
 **Trade-offs:**
-- **Accepted:** The development team has no visibility into production crashes or user behavior; debugging relies on user error reports and local testing.
-- **Accepted:** No usage analytics to inform feature prioritization or user research.
-- **Benefit:** Simplicity, no privacy concerns, 100% offline reliability.
-- **Path Forward:** Post-launch, consider local crash logging to file (queued for manual upload) or opt-in telemetry for v1.1.
+- **Accepted:** The development team has no visibility into production crashes, user behavior patterns, or app performance metrics. Debugging must rely on user error reports and local testing.
+- **Mitigation:** User feedback, beta testing community, and app store reviews provide qualitative insights. Local console logging and error boundaries provide visibility during development.
+- **Benefit:** Simplified codebase, no privacy/data handling concerns, 100% offline compliance.
+- **Future:** Production monitoring via optional backend can be added post-launch if a backend is introduced.
 
 **Status:** Accepted
 
 ---
 
-### ADR-025: Dice Roll History Ephemeral; Not Persisted in v1.0
+### ADR-025: Dice Roll History Ephemeral Storage
 
-**Decision:** Dice rolls are ephemeral in v1.0. Each time the Dice feature is exited or the app is restarted, all roll history is cleared. No roll history is persisted to AsyncStorage or any other storage.
+**Decision:** Dice rolls are ephemeral in v1.0. Each time the Dice feature is exited or the app is restarted, all roll history is cleared. No roll history is persisted to AsyncStorage or shown across sessions.
 
 **Context:**
-- The specification explicitly states "No data persistence is required for dice rolls" (implied by ADR-002's scope: only game sessions in Score feature are persisted).
-- Keeping in-memory roll history during a Dice session adds marginal UX value but complicates state management.
-- The Dice feature's purpose is to generate random values on-demand; users needing roll tracking can use the Score feature.
+- The specification explicitly states "No data persistence is required for dice rolls" (implied in ADR-002's scope: only Score feature game sessions are persisted).
+- Requirement FR-D-003 specifies "Display individual die values and sum," but does not mandate roll history.
+- Keeping in-memory roll history during a single Dice session (e.g., last 10 rolls on screen) adds marginal UX value but complicates state management.
+- The Dice feature's purpose is to generate random values on-demand for a single roll; historical tracking is outside scope.
+- Users who need to track rolls can use the Score feature, which persists player scores (not roll sequences, but sufficient for most use cases).
 
 **Alternatives Considered:**
-1. **In-memory history during session:** Keep last 10 rolls in component state; cleared on exit. Simple; adds state complexity.
-2. **Persist roll history to AsyncStorage:** Allows users to review past rolls; adds storage overhead and complicates ScoreService.
-3. **Export rolls as CSV:** Advanced feature; deferred to v1.1.
+1. **Implement persistent roll history:** Requires storage schema, UI redesign, and state management. Violates scope and simplicity goal.
+2. **In-memory session history (last 10 rolls visible on screen):** Adds complexity; marginal UX value. Deferred to v1.1 if users request.
+3. **Ephemeral only (current choice):** Simplest; aligns with "quick roll" use case.
 
 **Trade-offs:**
-- **Accepted:** Users cannot review past rolls or verify fairness after a session; each roll is independent.
-- **Benefit:** Simpler state management, no storage overhead, faster feature implementation.
-- **Path Forward:** If players request roll history in v1.1, implement in-session history (last 10 rolls in component state, not persisted).
+- **Accepted:** Users cannot review past rolls or verify fairness after exiting the Dice feature. Each roll is independent and immediately discarded if the feature is exited.
+- **Mitigation:** If players request roll history in v1.1, implement an optional in-session log (visible only during the current session, not persisted post-session).
+- **Benefit:** Zero persistence overhead, simpler component state, faster feature development.
 
 **Status:** Accepted
 
@@ -659,7 +683,7 @@ The application is fundamentally **offline-first**: all data is stored locally o
 ---
 
 ### Service: StorageService
-**Responsibility:** Abstract all AsyncStorage operations (save, load, delete, list) for game sessions. Provides a clean API for Score feature and future persistence needs. Implements 60-day cleanup on startup (per ADR-018).
+**Responsibility:** Abstract all AsyncStorage operations (save, load, delete, list) for game sessions. Provides a clean API for Score feature and future persistence needs.
 
 **Key Interfaces:**
 - **Exposes:** `StorageService` (singleton)
@@ -668,7 +692,7 @@ The application is fundamentally **offline-first**: all data is stored locally o
   - `deleteGameSession(sessionId: string): Promise<void>`
   - `listAllGameSessions(): Promise<GameSession[]>`
   - `sessionExists(sessionId: string): Promise<boolean>`
-  - `cleanupOldSessions(retentionDays: number = 60): Promise<number>` — Auto-delete sessions older than N days; return count deleted
+  - `cleanupOldSessions(retentionDays: number): Promise<void>` — Auto-delete sessions older than N days (per ADR-018)
 - **Consumes:** React Native AsyncStorage
 
 **Dependencies:** React Native, AsyncStorage
@@ -676,7 +700,7 @@ The application is fundamentally **offline-first**: all data is stored locally o
 ---
 
 ### Service: VibrationService
-**Responsibility:** Encapsulate platform-specific haptic feedback, providing a simple API for triggering vibrations when needed (e.g., Draw feature timer completion). Graceful degradation on unsupported devices (per ADR-020).
+**Responsibility:** Encapsulate platform-specific haptic feedback, providing a simple API for triggering vibrations when needed (e.g., Draw feature timer completion). Handles graceful fallback on unsupported devices (per ADR-020).
 
 **Key Interfaces:**
 - **Exposes:** `VibrationService` (singleton)
@@ -710,12 +734,12 @@ The application is fundamentally **offline-first**: all data is stored locally o
 | **Framework** | React Native | Single codebase for iOS and Android; mandated by NFR-C-004; managed by Meta and community. |
 | **Build/Deploy** | Expo (EAS) | Simplified CI/CD, app store submission, and managed native builds; no custom native code needed for v1.0. |
 | **UI Components** | React Native built-in | No external component library; built-in components (View, Text, Button, ScrollView) are sufficient. Reduces bundle size. |
-| **Animations** | React Native Animated API | Built-in, performant for simple animations (rotation, scale, opacity); 60 FPS achievable on target devices (per ADR-019). |
-| **Touch Handling** | React Native PanResponder | Built-in multi-touch tracking; adequate for 10 simultaneous touches (per ADR-017); no external dependency. |
-| **Gestures (if needed)** | react-native-gesture-handler | Fallback if PanResponder proves insufficient; provides advanced gesture detection. TBD post-testing (per ADR-017). |
+| **Animations** | React Native Animated API | Built-in, performant for simple animations (rotation, scale, opacity); 60 FPS achievable on target devices. |
+| **Touch Handling** | React Native PanResponder | Built-in multi-touch tracking; adequate for 10 simultaneous touches; no external dependency. |
+| **Gestures (if needed)** | react-native-gesture-handler | Fallback if PanResponder proves insufficient; provides advanced gesture detection. TBD post-testing. |
 | **Local Storage** | AsyncStorage | Bundled with Expo; sufficient for small datasets (~1KB per session); simple key-value interface. |
-| **Persistence Logic** | Custom StorageService | Wraps AsyncStorage; provides abstraction for potential future migration to SQLite. Implements 60-day cleanup (per ADR-018). |
-| **Haptics** | Expo Haptics | Abstracts iOS CoreHaptics and Android Vibrator; single API for cross-platform feedback; graceful degradation (per ADR-020). |
+| **Persistence Logic** | Custom StorageService | Wraps AsyncStorage; provides abstraction for potential future migration to SQLite. |
+| **Haptics** | Expo Haptics | Abstracts iOS CoreHaptics and Android Vibrator; single API for cross-platform feedback. |
 | **Random Numbers** | Math.random (JavaScript) | Built-in; sufficient for game randomness (not cryptographic). |
 | **Styling** | React Native StyleSheet | Built-in; use of constants for colors, spacing, typography. Alternative: Tailwind CSS (TailwindCSS-RN) deferred to v1.1. |
 | **Navigation** | React Navigation | Industry-standard for React Native routing; handles tab navigation, stack navigation if needed. |
@@ -758,8 +782,8 @@ game-companion/
 │   │       ├── useWinnerSelection.ts     # Custom hook: stability timer, selection logic
 │   │       └── DrawScreen.styles.ts      # Styles for Draw feature
 │   ├── services/
-│   │   ├── StorageService.ts             # AsyncStorage wrapper for game sessions; includes 60-day cleanup (ADR-018)
-│   │   ├── VibrationService.ts           # Expo Haptics wrapper; graceful degradation (ADR-020)
+│   │   ├── StorageService.ts             # AsyncStorage wrapper for game sessions
+│   │   ├── VibrationService.ts           # Expo Haptics wrapper
 │   │   └── RandomService.ts              # Centralized random number generation
 │   ├── types/
 │   │   └── index.ts                      # Shared TypeScript interfaces (GameSession, Player, etc.)
@@ -768,10 +792,8 @@ game-companion/
 │   │   ├── colors.ts                     # Centralized color definitions
 │   │   └── globalStyles.ts               # Shared styles (e.g., standard button, card)
 │   ├── utils/
-│   │   ├── validation.ts                 # Input validation (player names per ADR-015, etc.)
+│   │   ├── validation.ts                 # Input validation (player names, etc.)
 │   │   └── formatters.ts                 # Utility functions (format timestamps, etc.)
-│   ├── strings/
-│   │   └── en.ts                         # English-only UI strings; prepared for future i18n (ADR-022)
 │   ├── App.tsx                           # Root component: Navigation + setup
 │   └── index.tsx                         # App entry point
 ├── assets/
@@ -795,11 +817,10 @@ game-companion/
 - **src/components/Navigation:** Manages tab switching between Dice, Score, Draw. Minimal logic; mostly routing.
 - **src/components/Dice:** Dice rolling feature. DiceAnimation handles the spinning effect; DiceSelector manages quantity selection. useRollDice isolates the roll logic (random value generation, animation control).
 - **src/components/Score:** Score tracking feature. GameSessionList displays saved games; GameSessionForm creates new games; ScoreBoard shows the active game. useGameSession encapsulates storage interaction and session state management.
-- **src/components/Draw:** Multi-touch drawing feature. TouchCanvas renders circles and handles visualization; useTouchHandling manages PanResponder and touch tracking with stability tolerance (ADR-011); useWinnerSelection manages the 3-second timer and haptic feedback.
-- **src/services:** Isolated, testable service classes. Each wraps a native/external API and provides a simple interface. StorageService implements 60-day cleanup (ADR-018). VibrationService handles graceful degradation (ADR-020).
+- **src/components/Draw:** Multi-touch drawing feature. TouchCanvas renders circles and handles visualization; useTouchHandling manages PanResponder and touch tracking; useWinnerSelection manages the 3-second timer and haptic feedback.
+- **src/services:** Isolated, testable service classes. Each wraps a native/external API and provides a simple interface.
 - **src/types:** Shared TypeScript interfaces (GameSession, Player, etc.) to maintain consistency across components.
-- **src/styles:** Centralized design tokens. Ensures consistent colors (light theme per ADR-023), spacing, and typography across the app. All strings centralized for future i18n (ADR-022).
-- **src/strings:** Centralized English-only UI strings; prepared for future i18n migration (ADR-022).
+- **src/styles:** Centralized design tokens. Ensures consistent colors, spacing, and typography across the app.
 - **assets/:** Images, icons, and other static assets (empty in v1.0; placeholder for future visual assets).
 - **Root files:** app.json (Expo config), package.json (dependencies), tsconfig.json, babel.config.js, eas.json (build config).
 
@@ -824,7 +845,9 @@ game-companion/
 | `playerId` | UUID (string) | Unique identifier within the session |
 | `name` | string | Display name (1–20 characters, alphanumeric + spaces/hyphens per ADR-015) |
 
-**Storage Type:** Local device storage (AsyncStorage). Each GameSession is serialized as JSON and stored with key `game_session_{sessionId}`. All sessions are listed by enumerating keys prefixed with `game_session_`. Old sessions (>60 days) are auto-deleted on app startup (per ADR-018).
+**Storage Type:** Local device storage (AsyncStorage). Each GameSession is serialized as JSON and stored with key `game_session_{sessionId}`. All sessions are listed by enumerating keys prefixed with `game_session_`.
+
+**Cleanup:** Sessions older than 60 days are automatically deleted on app startup (per ADR-018).
 
 **Relationships:** None. Each GameSession is independent; players exist only within the session context.
 
@@ -845,7 +868,7 @@ game-companion/
 }
 ```
 
-**Note on Dice and Draw:** These features are stateless in terms of persistent data. Dice rolls are ephemeral (not persisted per ADR-025). Draw selections are immediate and not stored. Both features may optionally track history in-memory during a session, but this is not persisted beyond app lifetime.
+**Note on Dice and Draw:** These features are stateless in terms of persistent data. Dice rolls are ephemeral (not persisted; per ADR-025). Draw selections are immediate and not stored. Both features have no data model in the persistence layer; all state is in-memory and cleared on exit.
 
 ---
 
@@ -870,8 +893,6 @@ game-companion/
 }
 ```
 
-**Note:** Dice rolls are ephemeral; no history is retained post-session (per ADR-025).
-
 ---
 
 ### Score Feature – Public Interface
@@ -894,8 +915,6 @@ game-companion/
 }
 ```
 
-**Note:** Undo/redo is not implemented in v1.0 (per ADR-012); users must delete and recreate a session if a mistake is made.
-
 ---
 
 ### Draw Feature – Public Interface
@@ -917,11 +936,6 @@ game-companion/
 }
 ```
 
-**Notes:**
-- Touch positions are tracked with 5–10mm drift tolerance (per ADR-011).
-- Colors cycle through 8-color palette; 9th+ touches reuse earlier colors (per ADR-016).
-- Haptic feedback is provided on stability completion with graceful degradation (per ADR-020).
-
 ---
 
 ### StorageService – Public Interface
@@ -933,9 +947,7 @@ game-companion/
 | `deleteGameSession(sessionId: string): Promise<void>` | Remove session from storage | (no return; void promise) |
 | `listAllGameSessions(): Promise<GameSession[]>` | Enumerate all saved sessions | Array of GameSession objects |
 | `sessionExists(sessionId: string): Promise<boolean>` | Check if session exists | boolean |
-| `cleanupOldSessions(retentionDays?: number): Promise<number>` | Auto-delete sessions older than N days (default 60) | Count of deleted sessions |
-
-**Note:** Cleanup is called on app startup; users are not warned before deletion (per ADR-018).
+| `cleanupOldSessions(retentionDays: number = 60): Promise<void>` | Auto-delete sessions older than N days | (no return; void promise) |
 
 ---
 
@@ -947,32 +959,12 @@ game-companion/
 | `triggerSuccess(): Promise<void>` | Multi-pulse success pattern | Two short pulses (~75ms apart) |
 | `triggerError(): Promise<void>` | Multi-pulse error pattern | Three quick pulses (~50ms apart) |
 
-**Note:** All calls are no-op on unsupported devices (per ADR-020); no error handling required.
-
 ---
 
 ## 8. Open Questions
 
 None — all questions resolved.
 
-All 15 open questions from the initial architecture document have been addressed in Architecture Decision Records ADR-011 through ADR-025:
-
-- **ADR-011:** Touch Stability Tolerance (5–10mm drift)
-- **ADR-012:** Undo/Redo (not in v1.0)
-- **ADR-013:** Undo History Depth (deferred with plan for v1.1)
-- **ADR-014:** Cross-Device Sync (none)
-- **ADR-015:** Player Name Constraints (1–20 chars, alphanumeric + spaces/hyphens)
-- **ADR-016:** Touch Color Cycling (cycle through 8-color palette)
-- **ADR-017:** Multi-Touch Handler (PanResponder primary, GestureHandler fallback)
-- **ADR-018:** AsyncStorage Cleanup (60-day auto-delete)
-- **ADR-019:** Animation Frame Rate (target 60 FPS, accept 30 FPS graceful degradation)
-- **ADR-020:** Haptic Fallback (rely on Expo Haptics no-op)
-- **ADR-021:** Accessibility (screen reader annotations for critical elements)
-- **ADR-022:** Localization (English-only in v1.0; i18n deferred)
-- **ADR-023:** Dark Mode (static light theme; deferred)
-- **ADR-024:** Analytics (none; offline-first constraint)
-- **ADR-025:** Dice Roll History (ephemeral; not persisted)
-
 ---
 
-**End of Architecture Document — FINAL APPROVED**
+**End of Architecture Document**
