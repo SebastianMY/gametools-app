@@ -17,7 +17,14 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.gamecompanion.app",
-      "requireFullScreen": true
+      "requireFullScreen": true,
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "This app does not use the camera.",
+        "NSMicrophoneUsageDescription": "This app does not use the microphone.",
+        "UIRequiresFullScreen": true,
+        "UIStatusBarStyle": "UIStatusBarStyleDefault"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +32,9 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.gamecompanion.app",
-      "minSdkVersion": 26
+      "minSdkVersion": 26,
+      "versionCode": 1,
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -33,6 +42,14 @@
     "platforms": [
       "ios",
       "android"
-    ]
+    ],
+    "description": "A portable game toolkit for dice rolling, score tracking, and multi-touch winner selection. Works fully offline — no account required.",
+    "primaryColor": "#6366F1",
+    "privacy": "public",
+    "extra": {
+      "eas": {
+        "projectId": "game-companion-app"
+      }
+    }
   }
 }
